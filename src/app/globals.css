@@ -1,0 +1,146 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --gold: #c9912a;
+  --gold-light: #e8b84b;
+  --gold-pale: #f5d78e;
+  --dark: #030507;
+  --dark-2: #080d12;
+  --dark-3: #0e1620;
+  --dark-4: #162030;
+  --text-muted: #6b7a8d;
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background-color: var(--dark);
+  color: #e8edf3;
+  font-family: 'DM Sans', sans-serif;
+  overflow-x: hidden;
+}
+
+/* Noise texture overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.35;
+}
+
+.gold-text {
+  background: linear-gradient(135deg, var(--gold-pale) 0%, var(--gold-light) 40%, var(--gold) 70%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gold-shimmer {
+  background: linear-gradient(90deg, var(--gold) 0%, var(--gold-pale) 40%, var(--gold) 80%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 3s linear infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.card-glass {
+  background: rgba(14, 22, 32, 0.7);
+  border: 1px solid rgba(201, 145, 42, 0.15);
+  backdrop-filter: blur(12px);
+}
+
+.card-glass:hover {
+  border-color: rgba(201, 145, 42, 0.4);
+  box-shadow: 0 0 40px rgba(201, 145, 42, 0.08);
+}
+
+.btn-gold {
+  background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%);
+  color: #030507;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-gold::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--gold-light) 0%, var(--gold-pale) 100%);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.btn-gold:hover::after { opacity: 1; }
+
+.btn-gold span { position: relative; z-index: 1; }
+
+.btn-outline {
+  border: 1px solid rgba(201, 145, 42, 0.5);
+  color: var(--gold-light);
+  transition: all 0.3s ease;
+}
+
+.btn-outline:hover {
+  background: rgba(201, 145, 42, 0.08);
+  border-color: var(--gold-light);
+}
+
+.section-divider {
+  border: none;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(201, 145, 42, 0.3), transparent);
+}
+
+.glow-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--gold);
+  box-shadow: 0 0 12px var(--gold), 0 0 24px rgba(201, 145, 42, 0.4);
+  animation: pulse2 2s ease-in-out infinite;
+}
+
+@keyframes pulse2 {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.3); }
+}
+
+.grid-bg {
+  background-image:
+    linear-gradient(rgba(201, 145, 42, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(201, 145, 42, 0.04) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--dark-2); }
+::-webkit-scrollbar-thumb { background: rgba(201, 145, 42, 0.3); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--gold); }
+
+.fade-up { animation: fadeUp 0.7s ease forwards; }
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(28px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.delay-100 { animation-delay: 0.1s; }
+.delay-200 { animation-delay: 0.2s; }
+.delay-300 { animation-delay: 0.3s; }
+.delay-400 { animation-delay: 0.4s; }
+.delay-500 { animation-delay: 0.5s; }
