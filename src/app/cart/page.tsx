@@ -16,6 +16,21 @@ export default function CartPage() {
     setTimeout(() => setCopyStatus(null), 2000);
   };
 
+  // Get payment note based on item types in cart
+  const getPaymentNote = () => {
+    const hasService = items.some(i => i.type === "service");
+    const hasCourse = items.some(i => i.type === "course");
+    
+    if (hasService && hasCourse) {
+      return "Services: remaining 50% after project completion • Courses: remaining 50% after half course completion";
+    } else if (hasService) {
+      return "Remaining 50% to be paid after project completion";
+    } else if (hasCourse) {
+      return "Remaining 50% to be paid after half course completion";
+    }
+    return "Remaining 50% to be paid after completion";
+  };
+
   if (items.length === 0) {
     return (
       <div className="min-h-screen bg-[#fafaf8] flex items-center justify-center px-6">
@@ -56,8 +71,8 @@ export default function CartPage() {
               <div className="divide-y divide-stone-100">
                 {items.map((item) => (
                   <div key={item.id} className="p-5 flex items-center justify-between">
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
                         <span className={`text-[9px] font-mono px-2 py-0.5 rounded-full ${
                           item.type === "service" 
                             ? "bg-amber-50 text-amber-700 border border-amber-200"
@@ -68,9 +83,18 @@ export default function CartPage() {
                         <span className="font-medium text-stone-900 text-sm">{item.name}</span>
                       </div>
                       <p className="text-xs text-stone-400">{item.description}</p>
+                      <p className="text-[10px] text-amber-600 mt-1">
+                        {item.type === "service" 
+                          ? "💼 50% now • 50% after project completion"
+                          : "📚 50% now • 50% after half course completion"
+                        }
+                      </p>
                     </div>
                     <div className="flex items-center gap-4">
-                      <span className="font-bold text-amber-600 text-sm">Rs. {item.price.toLocaleString()}</span>
+                      <div className="text-right">
+                        <span className="font-bold text-amber-600 text-sm">Rs. {item.price.toLocaleString()}</span>
+                        <div className="text-[10px] text-stone-400">(50%: Rs. {(item.price / 2).toLocaleString()})</div>
+                      </div>
                       <button onClick={() => removeItem(item.id)} className="text-stone-300 hover:text-red-500">
                         <Trash2 size={16} />
                       </button>
@@ -93,9 +117,12 @@ export default function CartPage() {
             {/* 50% Advance Notice */}
             <div className="bg-amber-50 rounded-2xl border border-amber-200 p-6 mb-6 text-center">
               <div className="text-2xl font-bold text-amber-700 mb-1">50% Advance</div>
-              <p className="text-sm text-stone-600">Pay 50% now, remaining 50% after project completion</p>
+              <p className="text-sm text-stone-600">Pay 50% now, remaining 50% later</p>
               <div className="mt-3 text-3xl font-bold text-amber-700">Rs. {halfAmount.toLocaleString()}</div>
               <div className="text-xs text-stone-400 line-through">Total: Rs. {total.toLocaleString()}</div>
+              <div className="mt-2 text-[10px] text-stone-500">
+                {getPaymentNote()}
+              </div>
             </div>
 
             {/* Bank Details */}
@@ -121,7 +148,7 @@ export default function CartPage() {
                   <div className="flex items-center justify-between">
                     <div className="font-mono font-semibold text-stone-900 text-lg">03133937654</div>
                     <button 
-                      onClick={() => copyToClipboard("1234-56789012", "account")} 
+                      onClick={() => copyToClipboard("03133937654", "account")} 
                       className="text-amber-600 hover:text-amber-700 p-2 hover:bg-amber-50 rounded-lg transition-colors"
                     >
                       {copyStatus === "account" ? <Check size={18} /> : <Copy size={18} />}
@@ -143,7 +170,7 @@ export default function CartPage() {
                   <span className="font-semibold text-green-700">Rs. {halfAmount.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-stone-600">After Completion (50%)</span>
+                  <span className="text-stone-600">Remaining (50%)</span>
                   <span className="font-semibold">Rs. {halfAmount.toLocaleString()}</span>
                 </div>
                 <div className="border-t border-green-200 pt-3">
@@ -183,11 +210,11 @@ export default function CartPage() {
             <div className="mt-6 p-4 rounded-xl bg-blue-50 border border-blue-200">
               <p className="text-xs text-stone-600 leading-relaxed">
                 <span className="font-bold text-blue-700">📋 How to Order:</span><br />
-                1️⃣ Transfer 50% amount to Meezan Bank account above<br />
+                1️⃣ Transfer 50% amount to bank account above<br />
                 2️⃣ Click "Go to WhatsApp"<br />
                 3️⃣ Send payment screenshot on +92 336 8952826<br />
                 4️⃣ Work starts immediately after confirmation<br />
-                5️⃣ Pay remaining 50% after project completion<br /><br />
+                5️⃣ Pay remaining 50% after {items.some(i => i.type === "service") ? "project completion" : "half course completion"}<br /><br />
                 <span className="text-amber-600">⚠️ Note:</span> Platform accounts (n8n, VAPI, hosting, domains) are provided by client.
               </p>
             </div>
