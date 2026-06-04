@@ -4,6 +4,7 @@ import Link from "next/link";
 import {
   Bot, Phone, Globe, BookOpen, Zap, CheckCircle, ArrowRight,
   Star, Users, Award, MessageCircle, ChevronRight, ShoppingCart,
+  Video, MonitorPlay,
 } from "lucide-react";
 
 const SERVICES = [
@@ -16,7 +17,7 @@ const SERVICES = [
     accent: "#b07d1e",
     features: [
       "Custom workflow design & build",
-      "n8n automation only", // Fixed: Only n8n
+      "n8n automation only",
       "API integrations & webhooks",
       "e-commerce, CRM automation",
       "Ongoing support & documentation",
@@ -59,20 +60,44 @@ const SERVICES = [
 
 const COURSES = [
   {
-    id: "course-automation",
+    id: "course-automation-recorded",
     name: "AI Automation Mastery",
     icon: Zap,
-    price: 13000,
+    price: 12000,
+    format: "recorded",
     tagline: "Master n8n workflows from scratch",
+    duration: "~15 min per video",
     modules: ["n8n Deep Dive", "API Mastery", "Real Projects", "Deployment"],
   },
   {
-    id: "course-voice-agent",
+    id: "course-automation-live",
+    name: "AI Automation Mastery",
+    icon: Zap,
+    price: 20000,
+    format: "live",
+    tagline: "Live sessions on Google Meet",
+    duration: "6 classes · 30 min each",
+    modules: ["n8n Deep Dive", "API Mastery", "Real Projects", "Deployment"],
+  },
+  {
+    id: "course-voice-agent-recorded",
     name: "AI Voice Agent Course",
     icon: Phone,
-    price: 13000,
+    price: 12000,
+    format: "recorded",
     tagline: "Build production-ready AI agents",
-    modules: ["Voice AI Fundamentals", "VAPI / Retell Setup", "Script Writing", "CRM Integration", "Launch & Scale"],
+    duration: "~15 min per video",
+    modules: ["Voice AI Fundamentals", "VAPI / Retell Setup", "Script Writing", "Launch & Scale"],
+  },
+  {
+    id: "course-voice-agent-live",
+    name: "AI Voice Agent Course",
+    icon: Phone,
+    price: 20000,
+    format: "live",
+    tagline: "Live sessions on Google Meet",
+    duration: "6 classes · 30 min each",
+    modules: ["Voice AI Fundamentals", "VAPI / Retell Setup", "Script Writing", "Launch & Scale"],
   },
 ];
 
@@ -156,21 +181,55 @@ function CourseCard({ course }: { course: (typeof COURSES)[0] }) {
   const { addItem, items } = useCart();
   const inCart = items.find((i) => i.id === course.id);
   const Icon = course.icon;
+  const isLive = course.format === "live";
 
   return (
-    <div className="group relative flex flex-col gap-5 rounded-2xl p-8 bg-white border border-stone-200 hover:border-amber-300 hover:shadow-lg transition-all duration-300">
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-amber-50 border border-amber-200">
-          <Icon size={17} className="text-amber-600" />
+    <div
+      className={`group relative flex flex-col gap-5 rounded-2xl p-8 bg-white border transition-all duration-300 hover:shadow-lg ${
+        isLive
+          ? "border-amber-300 hover:border-amber-400"
+          : "border-stone-200 hover:border-amber-300"
+      }`}
+    >
+      {/* Format badge */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div
+            className={`w-10 h-10 rounded-xl flex items-center justify-center border ${
+              isLive ? "bg-amber-100 border-amber-300" : "bg-amber-50 border-amber-200"
+            }`}
+          >
+            <Icon size={17} className="text-amber-600" />
+          </div>
+          <span className="text-[11px] font-mono font-medium px-3 py-1 rounded-full tracking-wider bg-amber-50 text-amber-700 border border-amber-200">
+            COURSE
+          </span>
         </div>
-        <span className="text-[11px] font-mono font-medium px-3 py-1 rounded-full tracking-wider bg-amber-50 text-amber-700 border border-amber-200">
-          COURSE
-        </span>
+        <div
+          className={`flex items-center gap-1.5 text-[11px] font-mono px-3 py-1 rounded-full font-medium ${
+            isLive
+              ? "bg-green-50 text-green-700 border border-green-200"
+              : "bg-stone-100 text-stone-500 border border-stone-200"
+          }`}
+        >
+          {isLive ? (
+            <>
+              <MonitorPlay size={11} />
+              LIVE
+            </>
+          ) : (
+            <>
+              <Video size={11} />
+              RECORDED
+            </>
+          )}
+        </div>
       </div>
 
       <div>
         <h3 className="text-lg font-semibold text-stone-900 mb-1">{course.name}</h3>
         <p className="text-stone-500 text-sm">{course.tagline}</p>
+        <p className="text-amber-600 text-xs font-mono mt-1.5">{course.duration}</p>
       </div>
 
       <div className="flex-1">
@@ -187,23 +246,43 @@ function CourseCard({ course }: { course: (typeof COURSES)[0] }) {
         </div>
       </div>
 
+      {/* Live-specific perks */}
+      {isLive && (
+        <ul className="space-y-1.5">
+          {["Interactive Q&A each session", "Google Meet link shared before class"].map((perk) => (
+            <li key={perk} className="flex items-center gap-2 text-xs text-stone-500">
+              <CheckCircle size={12} className="text-green-500 shrink-0" />
+              {perk}
+            </li>
+          ))}
+        </ul>
+      )}
+
       <div className="pt-4 border-t border-stone-100">
         <div className="flex items-center justify-between mb-4">
           <span className="text-2xl font-bold text-amber-700">Rs. {course.price.toLocaleString()}</span>
-          <span className="text-stone-400 text-xs">lifetime access</span>
+          <span className="text-stone-400 text-xs">{isLive ? "6 live classes" : "lifetime access"}</span>
         </div>
         <button
           onClick={() =>
-            addItem({ id: course.id, name: course.name, price: course.price, type: "course", description: course.tagline })
+            addItem({
+              id: course.id,
+              name: `${course.name} (${isLive ? "Live" : "Recorded"})`,
+              price: course.price,
+              type: "course",
+              description: course.tagline,
+            })
           }
           disabled={!!inCart}
           className={`w-full py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 border ${
             inCart
               ? "bg-stone-100 text-stone-400 border-stone-200 cursor-default"
+              : isLive
+              ? "bg-amber-600 text-white border-amber-600 hover:bg-amber-700"
               : "border-amber-400 text-amber-700 hover:bg-amber-50"
           }`}
         >
-          {inCart ? "✓ Added to Cart" : "Enroll Now"}
+          {inCart ? "✓ Added to Cart" : isLive ? "Book Live Classes" : "Enroll Now"}
         </button>
       </div>
     </div>
@@ -213,7 +292,7 @@ function CourseCard({ course }: { course: (typeof COURSES)[0] }) {
 /* ── Cart Button Component ── */
 function CartButton() {
   const { count } = useCart();
-  
+
   return (
     <Link href="/cart" className="fixed bottom-6 right-6 z-50">
       <div className="relative">
@@ -326,10 +405,24 @@ export default function Home() {
               Expert-Led <span className="text-amber-600">Courses</span>
             </h2>
             <p className="text-stone-500 mt-4 max-w-xl mx-auto text-sm leading-relaxed">
-              Structured, practical courses to take you from beginner to AI-powered professional.
+              Choose your learning style — self-paced recorded videos or interactive live sessions on Google Meet.
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+
+          {/* Format legend */}
+          <div className="flex items-center justify-center gap-6 mb-10">
+            <div className="flex items-center gap-2 text-xs text-stone-500">
+              <Video size={13} className="text-stone-400" />
+              <span>Recorded — Rs. 12,000 · ~15 min/video · Lifetime access</span>
+            </div>
+            <div className="w-px h-4 bg-stone-200" />
+            <div className="flex items-center gap-2 text-xs text-stone-500">
+              <MonitorPlay size={13} className="text-green-500" />
+              <span>Live — Rs. 20,000 · 6 classes · 30 min each · Google Meet</span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {COURSES.map((c) => <CourseCard key={c.id} course={c} />)}
           </div>
         </div>
@@ -364,8 +457,10 @@ export default function Home() {
                   { name: "AI Automation (n8n only)", price: "30,000", type: "Service" },
                   { name: "AI Call / Voice Agent (any type)", price: "50,000", type: "Service" },
                   { name: "Complete Website", price: "20,000", type: "Service" },
-                  { name: "AI Automation Mastery Course", price: "13,000", type: "Course" },
-                  { name: "AI Voice Agent Course", price: "13,000", type: "Course" },
+                  { name: "AI Automation Mastery — Recorded (~15 min/video)", price: "12,000", type: "Recorded" },
+                  { name: "AI Automation Mastery — Live (6 classes · 30 min · Google Meet)", price: "20,000", type: "Live" },
+                  { name: "AI Voice Agent Course — Recorded (~15 min/video)", price: "12,000", type: "Recorded" },
+                  { name: "AI Voice Agent Course — Live (6 classes · 30 min · Google Meet)", price: "20,000", type: "Live" },
                 ].map((row, i) => (
                   <tr key={i} className="border-b border-stone-100 last:border-0 hover:bg-stone-50 transition-colors">
                     <td className="px-6 py-4">
@@ -373,9 +468,11 @@ export default function Home() {
                         <ChevronRight size={13} className="text-amber-500 shrink-0" />
                         <span className="text-stone-700 text-sm">{row.name}</span>
                         <span
-                          className={`text-[10px] px-2 py-0.5 rounded-full font-mono ${
+                          className={`text-[10px] px-2 py-0.5 rounded-full font-mono whitespace-nowrap ${
                             row.type === "Service"
                               ? "bg-amber-50 text-amber-700 border border-amber-200"
+                              : row.type === "Live"
+                              ? "bg-green-50 text-green-700 border border-green-200"
                               : "bg-stone-100 text-stone-500 border border-stone-200"
                           }`}
                         >
