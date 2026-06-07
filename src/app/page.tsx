@@ -66,8 +66,8 @@ const COURSES = [
     price: 12000,
     format: "recorded",
     tagline: "Master n8n workflows from scratch",
-    duration: "~15 min per video",
-    modules: ["n8n Deep Dive", "API Mastery", "Real Projects", "Deployment"],
+    duration: "6 classes · ~15 min each",
+    modules: ["n8n Deep Dive", "API Mastery", "Real Projects", "Deployment", "Webhooks", "Advanced Flows"],
   },
   {
     id: "course-automation-live",
@@ -76,8 +76,8 @@ const COURSES = [
     price: 20000,
     format: "live",
     tagline: "Live sessions on Google Meet",
-    duration: "6 classes · 30 min each",
-    modules: ["n8n Deep Dive", "API Mastery", "Real Projects", "Deployment"],
+    duration: "2 classes · ~45 min each",
+    modules: ["n8n Deep Dive", "API Mastery", "Real Projects", "Deployment", "Webhooks", "Advanced Flows"],
   },
   {
     id: "course-voice-agent-recorded",
@@ -86,8 +86,8 @@ const COURSES = [
     price: 12000,
     format: "recorded",
     tagline: "Build production-ready AI agents",
-    duration: "~15 min per video",
-    modules: ["Voice AI Fundamentals", "VAPI / Retell Setup", "Script Writing", "Launch & Scale"],
+    duration: "6 classes · ~15 min each",
+    modules: ["Voice AI Fundamentals", "VAPI / Retell Setup", "Script Writing", "Launch & Scale", "CRM Integration", "Testing & QA"],
   },
   {
     id: "course-voice-agent-live",
@@ -96,12 +96,11 @@ const COURSES = [
     price: 20000,
     format: "live",
     tagline: "Live sessions on Google Meet",
-    duration: "6 classes · 30 min each",
-    modules: ["Voice AI Fundamentals", "VAPI / Retell Setup", "Script Writing", "Launch & Scale"],
+    duration: "2 classes · ~45 min each",
+    modules: ["Voice AI Fundamentals", "VAPI / Retell Setup", "Script Writing", "Launch & Scale", "CRM Integration", "Testing & QA"],
   },
 ];
 
-/* ── Service Card ─────────────────────────────────────────── */
 function ServiceCard({ svc }: { svc: (typeof SERVICES)[0] }) {
   const { addItem, items } = useCart();
   const inCart = items.find((i) => i.id === svc.id);
@@ -163,9 +162,7 @@ function ServiceCard({ svc }: { svc: (typeof SERVICES)[0] }) {
           }
           disabled={!!inCart}
           className={`w-full py-2.5 px-4 rounded-xl text-sm font-semibold transition-all duration-200 ${
-            inCart
-              ? "bg-stone-100 text-stone-400 cursor-default"
-              : "text-white"
+            inCart ? "bg-stone-100 text-stone-400 cursor-default" : "text-white"
           }`}
           style={!inCart ? { background: svc.accent } : undefined}
         >
@@ -176,7 +173,6 @@ function ServiceCard({ svc }: { svc: (typeof SERVICES)[0] }) {
   );
 }
 
-/* ── Course Card ──────────────────────────────────────────── */
 function CourseCard({ course }: { course: (typeof COURSES)[0] }) {
   const { addItem, items } = useCart();
   const inCart = items.find((i) => i.id === course.id);
@@ -186,12 +182,9 @@ function CourseCard({ course }: { course: (typeof COURSES)[0] }) {
   return (
     <div
       className={`group relative flex flex-col gap-5 rounded-2xl p-8 bg-white border transition-all duration-300 hover:shadow-lg ${
-        isLive
-          ? "border-amber-300 hover:border-amber-400"
-          : "border-stone-200 hover:border-amber-300"
+        isLive ? "border-amber-300 hover:border-amber-400" : "border-stone-200 hover:border-amber-300"
       }`}
     >
-      {/* Format badge */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div
@@ -246,7 +239,6 @@ function CourseCard({ course }: { course: (typeof COURSES)[0] }) {
         </div>
       </div>
 
-      {/* Live-specific perks */}
       {isLive && (
         <ul className="space-y-1.5">
           {["Interactive Q&A each session", "Google Meet link shared before class"].map((perk) => (
@@ -261,7 +253,7 @@ function CourseCard({ course }: { course: (typeof COURSES)[0] }) {
       <div className="pt-4 border-t border-stone-100">
         <div className="flex items-center justify-between mb-4">
           <span className="text-2xl font-bold text-amber-700">Rs. {course.price.toLocaleString()}</span>
-          <span className="text-stone-400 text-xs">{isLive ? "6 live classes" : "lifetime access"}</span>
+          <span className="text-stone-400 text-xs">{isLive ? "2 live classes" : "lifetime access"}</span>
         </div>
         <button
           onClick={() =>
@@ -289,10 +281,8 @@ function CourseCard({ course }: { course: (typeof COURSES)[0] }) {
   );
 }
 
-/* ── Cart Button Component ── */
 function CartButton() {
   const { count } = useCart();
-
   return (
     <Link href="/cart" className="fixed bottom-6 right-6 z-50">
       <div className="relative">
@@ -309,14 +299,12 @@ function CartButton() {
   );
 }
 
-/* ── Page ─────────────────────────────────────────────────── */
 export default function Home() {
   return (
     <div className="min-h-screen bg-[#fafaf8] text-stone-900">
-      {/* Floating Cart Button */}
       <CartButton />
 
-      {/* ── HERO ── */}
+      {/* HERO */}
       <section className="relative min-h-screen flex items-center justify-center px-6 pt-20 overflow-hidden">
         <div
           className="absolute inset-0 pointer-events-none"
@@ -326,25 +314,23 @@ export default function Home() {
             backgroundSize: "48px 48px",
           }}
         />
-        <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 70% 60% at 50% 40%, #fafaf8 40%, transparent 100%)" }} />
-
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{ background: "radial-gradient(ellipse 70% 60% at 50% 40%, #fafaf8 40%, transparent 100%)" }}
+        />
         <div className="relative z-10 text-center max-w-3xl mx-auto">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-8 bg-amber-50 border border-amber-200">
             <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
             <span className="text-[11px] font-mono tracking-widest text-amber-700 uppercase">AI Solutions Expert</span>
           </div>
-
           <h1 className="text-5xl md:text-7xl font-bold mb-5 leading-tight tracking-tight">
-            Ahmed{" "}
-            <span className="text-amber-600">Memon</span>
+            Ahmed <span className="text-amber-600">Memon</span>
           </h1>
-
           <p className="text-stone-500 text-lg md:text-xl max-w-xl mx-auto mb-10 leading-relaxed">
             Transforming businesses with{" "}
             <span className="text-amber-600 font-medium">AI Automations</span>, intelligent{" "}
             <span className="text-amber-600 font-medium">Voice Agents</span>, and world-class courses.
           </p>
-
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <a
               href="#services"
@@ -359,7 +345,6 @@ export default function Home() {
               <BookOpen size={15} /> View Courses
             </a>
           </div>
-
           <div className="mt-20 grid grid-cols-3 gap-6 max-w-sm mx-auto">
             {[["5+", "Projects"], ["100%", "Satisfaction"], ["1+", "Years Exp."]].map(([val, label]) => (
               <div key={label} className="text-center">
@@ -369,14 +354,13 @@ export default function Home() {
             ))}
           </div>
         </div>
-
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 opacity-30">
           <div className="w-px h-10 bg-gradient-to-b from-transparent to-amber-600" />
           <span className="text-[10px] font-mono text-amber-700 tracking-widest">scroll</span>
         </div>
       </section>
 
-      {/* ── SERVICES ── */}
+      {/* SERVICES */}
       <section id="services" className="py-24 px-6 bg-white">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
@@ -389,14 +373,16 @@ export default function Home() {
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {SERVICES.map((svc) => <ServiceCard key={svc.id} svc={svc} />)}
+            {SERVICES.map((svc) => (
+              <ServiceCard key={svc.id} svc={svc} />
+            ))}
           </div>
         </div>
       </section>
 
       <div className="border-t border-stone-100 mx-6" />
 
-      {/* ── COURSES ── */}
+      {/* COURSES */}
       <section id="courses" className="py-24 px-6 bg-[#fafaf8]">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
@@ -408,29 +394,28 @@ export default function Home() {
               Choose your learning style — self-paced recorded videos or interactive live sessions on Google Meet.
             </p>
           </div>
-
-          {/* Format legend */}
           <div className="flex items-center justify-center gap-6 mb-10">
             <div className="flex items-center gap-2 text-xs text-stone-500">
               <Video size={13} className="text-stone-400" />
-              <span>Recorded — Rs. 12,000 · ~15 min/video · Lifetime access</span>
+              <span>Recorded — Rs. 12,000 · 6 classes · ~15 min each · Lifetime access</span>
             </div>
             <div className="w-px h-4 bg-stone-200" />
             <div className="flex items-center gap-2 text-xs text-stone-500">
               <MonitorPlay size={13} className="text-green-500" />
-              <span>Live — Rs. 20,000 · 6 classes · 30 min each · Google Meet</span>
+              <span>Live — Rs. 20,000 · 2 classes · ~45 min each · Google Meet</span>
             </div>
           </div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {COURSES.map((c) => <CourseCard key={c.id} course={c} />)}
+            {COURSES.map((c) => (
+              <CourseCard key={c.id} course={c} />
+            ))}
           </div>
         </div>
       </section>
 
       <div className="border-t border-stone-100 mx-6" />
 
-      {/* ── PRICING ── */}
+      {/* PRICING */}
       <section id="pricing" className="py-24 px-6 bg-white">
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-14">
@@ -439,7 +424,6 @@ export default function Home() {
               Clear <span className="text-amber-600">Pricing</span>
             </h2>
           </div>
-
           <div className="rounded-2xl border border-stone-200 overflow-hidden bg-white">
             <table className="w-full">
               <thead className="bg-stone-50 border-b border-stone-200">
@@ -457,10 +441,10 @@ export default function Home() {
                   { name: "AI Automation (n8n only)", price: "30,000", type: "Service" },
                   { name: "AI Call / Voice Agent (any type)", price: "50,000", type: "Service" },
                   { name: "Complete Website", price: "20,000", type: "Service" },
-                  { name: "AI Automation Mastery — Recorded (~15 min/video)", price: "12,000", type: "Recorded" },
-                  { name: "AI Automation Mastery — Live (6 classes · 30 min · Google Meet)", price: "20,000", type: "Live" },
-                  { name: "AI Voice Agent Course — Recorded (~15 min/video)", price: "12,000", type: "Recorded" },
-                  { name: "AI Voice Agent Course — Live (6 classes · 30 min · Google Meet)", price: "20,000", type: "Live" },
+                  { name: "AI Automation Mastery — Recorded (6 classes · ~15 min each)", price: "12,000", type: "Recorded" },
+                  { name: "AI Automation Mastery — Live (2 classes · ~45 min each · Google Meet)", price: "20,000", type: "Live" },
+                  { name: "AI Voice Agent Course — Recorded (6 classes · ~15 min each)", price: "12,000", type: "Recorded" },
+                  { name: "AI Voice Agent Course — Live (2 classes · ~45 min each · Google Meet)", price: "20,000", type: "Live" },
                 ].map((row, i) => (
                   <tr key={i} className="border-b border-stone-100 last:border-0 hover:bg-stone-50 transition-colors">
                     <td className="px-6 py-4">
@@ -488,12 +472,11 @@ export default function Home() {
               </tbody>
             </table>
           </div>
-
           <div className="mt-5 p-5 rounded-xl bg-amber-50 border border-amber-200">
             <p className="text-xs text-stone-500 leading-relaxed">
               <span className="text-amber-700 font-semibold">Note:</span> All platform accounts and associated costs
-              (n8n, voice AI services, hosting, domains, etc.) are the responsibility of the client.
-              Ahmed Memon will build the workflows, agents, and websites only. Costs of third-party services are{" "}
+              (n8n, voice AI services, hosting, domains, etc.) are the responsibility of the client. Ahmed Memon will
+              build the workflows, agents, and websites only. Costs of third-party services are{" "}
               <strong className="text-stone-700">not included</strong> in the pricing above.
             </p>
           </div>
@@ -502,7 +485,7 @@ export default function Home() {
 
       <div className="border-t border-stone-100 mx-6" />
 
-      {/* ── WHY ME ── */}
+      {/* WHY ME */}
       <section id="about" className="py-24 px-6 bg-[#fafaf8]">
         <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-16 items-center">
           <div>
@@ -531,7 +514,6 @@ export default function Home() {
               ))}
             </div>
           </div>
-
           <div className="grid grid-cols-2 gap-4">
             {[
               { val: "30K", label: "AI Automation", desc: "n8n workflow builds" },
@@ -539,7 +521,10 @@ export default function Home() {
               { val: "20K", label: "Website", desc: "Full business site" },
               { val: "∞", label: "Support", desc: "Post-delivery guidance" },
             ].map((s) => (
-              <div key={s.label} className="rounded-2xl p-5 text-center bg-white border border-stone-200 hover:border-amber-300 transition-colors">
+              <div
+                key={s.label}
+                className="rounded-2xl p-5 text-center bg-white border border-stone-200 hover:border-amber-300 transition-colors"
+              >
                 <div className="text-3xl font-bold text-amber-600 mb-1">Rs. {s.val}</div>
                 <div className="text-stone-800 text-sm font-medium">{s.label}</div>
                 <div className="text-stone-400 text-xs mt-1">{s.desc}</div>
@@ -551,7 +536,7 @@ export default function Home() {
 
       <div className="border-t border-stone-100 mx-6" />
 
-      {/* ── CONTACT ── */}
+      {/* CONTACT */}
       <section id="contact" className="py-24 px-6 bg-white">
         <div className="max-w-xl mx-auto text-center">
           <span className="text-[11px] font-mono uppercase tracking-widest text-amber-600">Get Started</span>
@@ -562,7 +547,6 @@ export default function Home() {
             Add your desired service to the cart and proceed to checkout. Once payment is confirmed, your project
             begins immediately.
           </p>
-
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link
               href="/cart"
