@@ -1,10 +1,11 @@
 "use client";
 import { useCart } from "./CartContext";
 import Link from "next/link";
+import { useState } from "react";
 import {
   Bot, Phone, Globe, BookOpen, Zap, CheckCircle, ArrowRight,
   Star, Users, Award, MessageCircle, ChevronRight, ShoppingCart,
-  Video, MonitorPlay,
+  Video, MonitorPlay, ChevronDown, FileText,
 } from "lucide-react";
 
 const SERVICES = [
@@ -58,6 +59,26 @@ const SERVICES = [
   },
 ];
 
+// Detailed outline for AI Voice Agent Course
+const voiceAgentOutline = [
+  { class: "Class 1", title: "Introduction to AI Call Agents", topics: ["What is an AI call agent and how it works", "Overview of popular platforms: VAPI, Retell AI", "Inbound vs outbound call agents — key differences", "Real-world use cases: bookings, lead qualification, customer support", "Setting up your first platform account in Retell AI and dashboard walkthrough"] },
+  { class: "Class 2", title: "Designing the Call Flow & Script", topics: ["Understanding conversation flow", "Writing a natural, human-sounding call script", "Handling greetings, objections, and fallback responses", "Setting goals for the agent: what should it collect or do?", "Testing your script logic before going live"] },
+  { class: "Class 3", title: "Voice & Persona Configuration", topics: ["Choosing the right AI voice (ElevenLabs)", "Setting tone, speed, and language of the agent", "Building a persona: name, personality, and purpose", "Configuring background sound and silence detection", "Knowledge base in agent"] },
+  { class: "Class 4", title: "Integrations — CRM, Calendar & Webhooks", topics: ["Connecting your agent to a CRM (GoHighLevel, HubSpot, etc.)", "Booking appointments via Cal.com or Google Calendar", "Using webhooks to send call data to other tools", "Logging call outcomes and transcripts automatically"] },
+  { class: "Class 5", title: "Phone Number Setup", topics: ["How to connect phone number with Retell", "Platform from where to buy the numbers", "The UI of the phone number page", "VAPI free number and limitation"] },
+  { class: "Class 6", title: "Final Project", topics: ["AI Receptionist Agent in Roman Urdu"] }
+];
+
+// Detailed outline for AI Automation Course (n8n)
+const automationOutline = [
+  { module: "Module 1", title: "Introduction, UI & Setup", topics: ["What is n8n?", "What is AI Automation vs Normal Automation?", "Cloud vs Self-Hosted", "n8n Instance Tour (UI Walkthrough)", "Basic Workflow Concept"] },
+  { module: "Module 2", title: "Core Concepts", topics: ["Nodes Explained", "What is a Workflow?", "Trigger vs Action Nodes", "Simple Automation: Manual Trigger + Send Email", "Understanding Data Flow"] },
+  { module: "Module 3", title: "Triggers, Webhooks & Cron Jobs", topics: ["What is a Webhook?", "What is a Cron Job?", "Form Submission Automations", "Workflow Trigger Node", "Real-World Examples"] },
+  { module: "Module 4", title: "APIs & Real Integrations", topics: ["What is an API?", "GET vs POST Requests", "MCP Server & Client", "Nodes Open & Explained — how mapping set nodes & expressions works"] },
+  { module: "Module 5", title: "Logic & Smart Automations", topics: ["IF Conditions", "Switch Nodes", "Filters", "AI Agent Node Introduction", "How AI Agent Nodes Work"] },
+  { module: "Final Project", title: "Build an AI Agent Chatbot", topics: ["Generate AI Responses Automatically", "Restaurant Booking", "Save Interested Leads into Google Sheets", "Complete End-to-End Automation Workflow"] }
+];
+
 const COURSES = [
   {
     id: "course-automation-recorded",
@@ -68,6 +89,8 @@ const COURSES = [
     tagline: "Master n8n workflows from scratch",
     duration: "6 classes · ~15 min each",
     modules: ["n8n Deep Dive", "API Mastery", "Real Projects", "Deployment", "Webhooks", "Advanced Flows"],
+    outline: automationOutline,
+    outlineTitle: "Course Curriculum (6 Modules)",
   },
   {
     id: "course-automation-live",
@@ -78,6 +101,8 @@ const COURSES = [
     tagline: "Live sessions on Google Meet",
     duration: "2 classes · ~45 min each",
     modules: ["n8n Deep Dive", "API Mastery", "Real Projects", "Deployment", "Webhooks", "Advanced Flows"],
+    outline: automationOutline,
+    outlineTitle: "Course Curriculum (6 Modules)",
   },
   {
     id: "course-voice-agent-recorded",
@@ -88,6 +113,8 @@ const COURSES = [
     tagline: "Build production-ready AI agents",
     duration: "6 classes · ~15 min each",
     modules: ["Voice AI Fundamentals", "VAPI / Retell Setup", "Script Writing", "Launch & Scale", "CRM Integration", "Testing & QA"],
+    outline: voiceAgentOutline,
+    outlineTitle: "Complete Course Outline — 6 Classes · 30 Minutes Each",
   },
   {
     id: "course-voice-agent-live",
@@ -98,6 +125,8 @@ const COURSES = [
     tagline: "Live sessions on Google Meet",
     duration: "2 classes · ~45 min each",
     modules: ["Voice AI Fundamentals", "VAPI / Retell Setup", "Script Writing", "Launch & Scale", "CRM Integration", "Testing & QA"],
+    outline: voiceAgentOutline,
+    outlineTitle: "Complete Course Outline — 6 Classes · 30 Minutes Each",
   },
 ];
 
@@ -178,6 +207,7 @@ function CourseCard({ course }: { course: (typeof COURSES)[0] }) {
   const inCart = items.find((i) => i.id === course.id);
   const Icon = course.icon;
   const isLive = course.format === "live";
+  const [showOutline, setShowOutline] = useState(false);
 
   return (
     <div
@@ -238,6 +268,42 @@ function CourseCard({ course }: { course: (typeof COURSES)[0] }) {
           ))}
         </div>
       </div>
+
+      {/* View Outline Button */}
+      <button
+        onClick={() => setShowOutline(!showOutline)}
+        className="flex items-center justify-center gap-2 w-full py-2 rounded-lg text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 hover:bg-amber-100 transition-colors"
+      >
+        <FileText size={13} />
+        {showOutline ? "Hide Full Outline" : "View Full Course Outline"}
+        <ChevronDown size={13} className={`transition-transform ${showOutline ? "rotate-180" : ""}`} />
+      </button>
+
+      {/* Detailed Outline Section */}
+      {showOutline && (
+        <div className="mt-2 pt-4 border-t border-stone-100">
+          <p className="text-xs font-semibold text-amber-700 mb-3 flex items-center gap-1">
+            <BookOpen size={12} /> {course.outlineTitle}
+          </p>
+          <div className="space-y-3 max-h-80 overflow-y-auto pr-1">
+            {course.outline.map((item: any, idx: number) => (
+              <div key={idx} className="border-l-2 border-amber-200 pl-3">
+                <p className="text-xs font-semibold text-stone-800">
+                  {item.class || item.module}: {item.title}
+                </p>
+                <ul className="mt-1 space-y-0.5">
+                  {item.topics.map((topic: string, tIdx: number) => (
+                    <li key={tIdx} className="text-[11px] text-stone-500 flex items-start gap-1.5">
+                      <ChevronRight size={10} className="mt-0.5 shrink-0 text-amber-500" />
+                      {topic}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {isLive && (
         <ul className="space-y-1.5">
