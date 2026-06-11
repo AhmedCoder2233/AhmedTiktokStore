@@ -1,21 +1,23 @@
 "use client";
-import { useCart } from "./CartContext";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useState } from "react";
-import {
-  Bot, Phone, Globe, BookOpen, Zap, CheckCircle, ArrowRight,
-  Star, Users, Award, MessageCircle, ChevronRight, ShoppingCart,
-  Video, MonitorPlay, ChevronDown, FileText,
-} from "lucide-react";
+import { useCart } from "./CartContext";
 
+// ─── SALE CONFIG ──────────────────────────────────────────────────────────────
+const SALE_DAYS = 5;
+const SALE_RECORDED_PRICE = 7500;
+const SALE_LIVE_PRICE = 15000;
+const ORIGINAL_RECORDED_PRICE = 12000;
+const ORIGINAL_LIVE_PRICE = 20000;
+
+// ─── DATA ─────────────────────────────────────────────────────────────────────
 const SERVICES = [
   {
     id: "ai-automation",
     name: "AI Automation",
-    icon: Bot,
     price: 30000,
     tagline: "Any type of AI automation",
-    accent: "#b07d1e",
+    icon: "⚡",
     features: [
       "Custom workflow design & build",
       "n8n automation only",
@@ -28,10 +30,9 @@ const SERVICES = [
   {
     id: "ai-call-agent",
     name: "AI Call Agent",
-    icon: Phone,
     price: 50000,
     tagline: "Any type of AI voice/call agent",
-    accent: "#c9912a",
+    icon: "🎙️",
     features: [
       "Full AI call agent setup",
       "Custom voice & persona design",
@@ -44,10 +45,9 @@ const SERVICES = [
   {
     id: "website",
     name: "Complete Website",
-    icon: Globe,
     price: 20000,
     tagline: "Professional business website",
-    accent: "#8a6312",
+    icon: "🌐",
     features: [
       "Responsive modern design",
       "Up to 8 pages",
@@ -59,141 +59,159 @@ const SERVICES = [
   },
 ];
 
-// Detailed outline for AI Voice Agent Course
 const voiceAgentOutline = [
   { class: "Class 1", title: "Introduction to AI Call Agents", topics: ["What is an AI call agent and how it works", "Overview of popular platforms: VAPI, Retell AI", "Inbound vs outbound call agents — key differences", "Real-world use cases: bookings, lead qualification, customer support", "Setting up your first platform account in Retell AI and dashboard walkthrough"] },
   { class: "Class 2", title: "Designing the Call Flow & Script", topics: ["Understanding conversation flow", "Writing a natural, human-sounding call script", "Handling greetings, objections, and fallback responses", "Setting goals for the agent: what should it collect or do?", "Testing your script logic before going live"] },
   { class: "Class 3", title: "Voice & Persona Configuration", topics: ["Choosing the right AI voice (ElevenLabs)", "Setting tone, speed, and language of the agent", "Building a persona: name, personality, and purpose", "Configuring background sound and silence detection", "Knowledge base in agent"] },
   { class: "Class 4", title: "Integrations — CRM, Calendar & Webhooks", topics: ["Connecting your agent to a CRM (GoHighLevel, HubSpot, etc.)", "Booking appointments via Cal.com or Google Calendar", "Using webhooks to send call data to other tools", "Logging call outcomes and transcripts automatically"] },
   { class: "Class 5", title: "Phone Number Setup", topics: ["How to connect phone number with Retell", "Platform from where to buy the numbers", "The UI of the phone number page", "VAPI free number and limitation"] },
-  { class: "Class 6", title: "Final Project", topics: ["AI Receptionist Agent in Roman Urdu"] }
+  { class: "Class 6", title: "Final Project", topics: ["AI Receptionist Agent in Roman Urdu"] },
 ];
 
-// Detailed outline for AI Automation Course (n8n)
 const automationOutline = [
   { module: "Module 1", title: "Introduction, UI & Setup", topics: ["What is n8n?", "What is AI Automation vs Normal Automation?", "Cloud vs Self-Hosted", "n8n Instance Tour (UI Walkthrough)", "Basic Workflow Concept"] },
   { module: "Module 2", title: "Core Concepts", topics: ["Nodes Explained", "What is a Workflow?", "Trigger vs Action Nodes", "Simple Automation: Manual Trigger + Send Email", "Understanding Data Flow"] },
   { module: "Module 3", title: "Triggers, Webhooks & Cron Jobs", topics: ["What is a Webhook?", "What is a Cron Job?", "Form Submission Automations", "Workflow Trigger Node", "Real-World Examples"] },
   { module: "Module 4", title: "APIs & Real Integrations", topics: ["What is an API?", "GET vs POST Requests", "MCP Server & Client", "Nodes Open & Explained — how mapping set nodes & expressions works"] },
   { module: "Module 5", title: "Logic & Smart Automations", topics: ["IF Conditions", "Switch Nodes", "Filters", "AI Agent Node Introduction", "How AI Agent Nodes Work"] },
-  { module: "Final Project", title: "Build an AI Agent Chatbot", topics: ["Generate AI Responses Automatically", "Restaurant Booking", "Save Interested Leads into Google Sheets", "Complete End-to-End Automation Workflow"] }
+  { module: "Final Project", title: "Build an AI Agent Chatbot", topics: ["Generate AI Responses Automatically", "Restaurant Booking", "Save Interested Leads into Google Sheets", "Complete End-to-End Automation Workflow"] },
 ];
 
 const COURSES = [
   {
     id: "course-automation-recorded",
     name: "AI Automation Mastery",
-    icon: Zap,
-    price: 12000,
     format: "recorded",
+    icon: "⚡",
     tagline: "Master n8n workflows from scratch",
     duration: "6 classes · ~15 min each",
-    modules: ["n8n Deep Dive", "API Mastery", "Real Projects", "Deployment", "Webhooks", "Advanced Flows"],
+    price: SALE_RECORDED_PRICE,
+    originalPrice: ORIGINAL_RECORDED_PRICE,
     outline: automationOutline,
-    outlineTitle: "Course Curriculum (6 Modules)",
+    courseType: "recorded" as const,
   },
   {
     id: "course-automation-live",
     name: "AI Automation Mastery",
-    icon: Zap,
-    price: 20000,
     format: "live",
+    icon: "⚡",
     tagline: "Live sessions on Google Meet",
     duration: "2 classes · ~45 min each",
-    modules: ["n8n Deep Dive", "API Mastery", "Real Projects", "Deployment", "Webhooks", "Advanced Flows"],
+    price: SALE_LIVE_PRICE,
+    originalPrice: ORIGINAL_LIVE_PRICE,
     outline: automationOutline,
-    outlineTitle: "Course Curriculum (6 Modules)",
+    courseType: "live" as const,
   },
   {
     id: "course-voice-agent-recorded",
     name: "AI Voice Agent Course",
-    icon: Phone,
-    price: 12000,
     format: "recorded",
+    icon: "🎙️",
     tagline: "Build production-ready AI agents",
     duration: "6 classes · ~15 min each",
-    modules: ["Voice AI Fundamentals", "VAPI / Retell Setup", "Script Writing", "Launch & Scale", "CRM Integration", "Testing & QA"],
+    price: SALE_RECORDED_PRICE,
+    originalPrice: ORIGINAL_RECORDED_PRICE,
     outline: voiceAgentOutline,
-    outlineTitle: "Complete Course Outline — 6 Classes · 30 Minutes Each",
+    courseType: "recorded" as const,
   },
   {
     id: "course-voice-agent-live",
     name: "AI Voice Agent Course",
-    icon: Phone,
-    price: 20000,
     format: "live",
+    icon: "🎙️",
     tagline: "Live sessions on Google Meet",
     duration: "2 classes · ~45 min each",
-    modules: ["Voice AI Fundamentals", "VAPI / Retell Setup", "Script Writing", "Launch & Scale", "CRM Integration", "Testing & QA"],
+    price: SALE_LIVE_PRICE,
+    originalPrice: ORIGINAL_LIVE_PRICE,
     outline: voiceAgentOutline,
-    outlineTitle: "Complete Course Outline — 6 Classes · 30 Minutes Each",
+    courseType: "live" as const,
   },
 ];
 
-function ServiceCard({ svc }: { svc: (typeof SERVICES)[0] }) {
-  const { addItem, items } = useCart();
-  const inCart = items.find((i) => i.id === svc.id);
-  const Icon = svc.icon;
+// ─── SALE BANNER (no timer) ──────────────────────────────────────────────────
+function SaleBanner() {
+  return (
+    <div className="sale-banner">
+      <div className="sale-banner-inner">
+        <div className="sale-title">
+          <span>🔥</span>
+          <span>SUMMER SALE — {SALE_DAYS} DAYS ONLY</span>
+        </div>
+        <div className="sale-prices">
+          <span className="muted">Recorded:</span>
+          <span className="gold bold">Rs. {SALE_RECORDED_PRICE.toLocaleString()}</span>
+          <span className="strike">Rs. {ORIGINAL_RECORDED_PRICE.toLocaleString()}</span>
+          <span className="dot">·</span>
+          <span className="muted">Live:</span>
+          <span className="gold bold">Rs. {SALE_LIVE_PRICE.toLocaleString()}</span>
+          <span className="strike">Rs. {ORIGINAL_LIVE_PRICE.toLocaleString()}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── NAV ──────────────────────────────────────────────────────────────────────
+function Nav() {
+  const { count } = useCart();
+
+  const scrollTo = (id: string) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   return (
-    <div
-      className="group relative flex flex-col gap-6 rounded-2xl p-8 bg-white border border-stone-200 hover:border-amber-300 hover:shadow-lg transition-all duration-300"
-      style={{ willChange: "transform", transform: "translateZ(0)" }}
-    >
-      <div className="flex items-start justify-between">
-        <div
-          className="w-11 h-11 rounded-xl flex items-center justify-center"
-          style={{ background: svc.accent + "12", border: `1.5px solid ${svc.accent}30` }}
-        >
-          <Icon size={20} style={{ color: svc.accent }} />
-        </div>
-        <span
-          className="text-[11px] font-mono font-medium px-3 py-1 rounded-full tracking-wider"
-          style={{ background: svc.accent + "10", color: svc.accent, border: `1px solid ${svc.accent}25` }}
-        >
-          SERVICE
-        </span>
+    <nav className="main-nav">
+      <button onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} className="nav-logo">
+        Ahmed <span className="nav-logo-white">Memon</span>
+      </button>
+      <div className="nav-links">
+        {["services", "courses", "pricing", "about"].map(s => (
+          <button key={s} onClick={() => scrollTo(s)} className="nav-link">
+            {s}
+          </button>
+        ))}
       </div>
+      <Link href="/cart" className="nav-cart">
+        🛒 Cart
+        {count > 0 && <span className="cart-badge">{count}</span>}
+      </Link>
+    </nav>
+  );
+}
 
+// ─── SERVICE CARD ─────────────────────────────────────────────────────────────
+function ServiceCard({ svc }: { svc: typeof SERVICES[0] }) {
+  const { addItem, items } = useCart();
+  const inCart = !!items.find(i => i.id === svc.id);
+
+  return (
+    <div className="card service-card">
+      <div className="card-header">
+        <div className="card-icon">{svc.icon}</div>
+        <span className="badge badge-gold">SERVICE</span>
+      </div>
       <div>
-        <h3 className="text-lg font-semibold text-stone-900 mb-1">{svc.name}</h3>
-        <p className="text-stone-500 text-sm">{svc.tagline}</p>
+        <h3 className="card-title">{svc.name}</h3>
+        <p className="card-tagline">{svc.tagline}</p>
       </div>
-
-      <ul className="space-y-2 flex-1">
-        {svc.features.map((f) => (
-          <li key={f} className="flex items-start gap-2 text-sm text-stone-600">
-            <CheckCircle size={13} className="mt-0.5 shrink-0" style={{ color: svc.accent }} />
-            {f}
+      <ul className="feature-list">
+        {svc.features.map(f => (
+          <li key={f} className="feature-item">
+            <span className="check">✓</span> {f}
           </li>
         ))}
       </ul>
-
-      {svc.note && (
-        <p
-          className="text-[11px] text-stone-400 italic border-l-2 pl-3 leading-relaxed"
-          style={{ borderColor: svc.accent + "50" }}
-        >
-          {svc.note}
-        </p>
-      )}
-
-      <div className="pt-4 border-t border-stone-100">
-        <div className="flex items-baseline gap-1 mb-4">
-          <span className="text-2xl font-bold" style={{ color: svc.accent }}>
-            Rs. {svc.price.toLocaleString()}
-          </span>
-          <span className="text-stone-400 text-xs">/ project</span>
+      {svc.note && <p className="card-note">{svc.note}</p>}
+      <div className="card-footer">
+        <div className="price-row">
+          <span className="price">Rs. {svc.price.toLocaleString()}</span>
+          <span className="price-unit">/ project</span>
         </div>
+        <p className="payment-info">💼 50% advance · 50% after completion</p>
         <button
-          onClick={() =>
-            addItem({ id: svc.id, name: svc.name, price: svc.price, type: "service", description: svc.tagline })
-          }
-          disabled={!!inCart}
-          className={`w-full py-2.5 px-4 rounded-xl text-sm font-semibold transition-all duration-200 ${
-            inCart ? "bg-stone-100 text-stone-400 cursor-default" : "text-white"
-          }`}
-          style={!inCart ? { background: svc.accent } : undefined}
+          onClick={() => addItem({ id: svc.id, name: svc.name, price: svc.price, type: "service", description: svc.tagline })}
+          disabled={inCart}
+          className={`btn-add ${inCart ? "btn-added" : "btn-primary"}`}
         >
           {inCart ? "✓ Added to Cart" : "Add to Cart"}
         </button>
@@ -202,435 +220,538 @@ function ServiceCard({ svc }: { svc: (typeof SERVICES)[0] }) {
   );
 }
 
-function CourseCard({ course }: { course: (typeof COURSES)[0] }) {
+// ─── COURSE CARD (with outline restored, 2 per row) ────────────────────────────
+function CourseCard({ course }: { course: typeof COURSES[0] }) {
   const { addItem, items } = useCart();
-  const inCart = items.find((i) => i.id === course.id);
-  const Icon = course.icon;
-  const isLive = course.format === "live";
+  const inCart = !!items.find(i => i.id === course.id);
   const [showOutline, setShowOutline] = useState(false);
+  const isLive = course.format === "live";
+  const discount = Math.round((1 - course.price / course.originalPrice) * 100);
 
   return (
-    <div
-      className={`group relative flex flex-col gap-5 rounded-2xl p-8 bg-white border transition-all duration-300 hover:shadow-lg ${
-        isLive ? "border-amber-300 hover:border-amber-400" : "border-stone-200 hover:border-amber-300"
-      }`}
-    >
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div
-            className={`w-10 h-10 rounded-xl flex items-center justify-center border ${
-              isLive ? "bg-amber-100 border-amber-300" : "bg-amber-50 border-amber-200"
-            }`}
-          >
-            <Icon size={17} className="text-amber-600" />
-          </div>
-          <span className="text-[11px] font-mono font-medium px-3 py-1 rounded-full tracking-wider bg-amber-50 text-amber-700 border border-amber-200">
-            COURSE
-          </span>
-        </div>
-        <div
-          className={`flex items-center gap-1.5 text-[11px] font-mono px-3 py-1 rounded-full font-medium ${
-            isLive
-              ? "bg-green-50 text-green-700 border border-green-200"
-              : "bg-stone-100 text-stone-500 border border-stone-200"
-          }`}
-        >
-          {isLive ? (
-            <>
-              <MonitorPlay size={11} />
-              LIVE
-            </>
-          ) : (
-            <>
-              <Video size={11} />
-              RECORDED
-            </>
-          )}
-        </div>
+    <div className={`card course-card ${isLive ? "course-live" : ""}`}>
+      {isLive && <div className="live-ribbon">LIVE</div>}
+
+      <div className="card-header">
+        <div className="card-icon">{course.icon}</div>
+        <span className={`badge ${isLive ? "badge-live" : "badge-recorded"}`}>
+          {isLive ? "🔴 LIVE" : "📹 RECORDED"}
+        </span>
       </div>
 
       <div>
-        <h3 className="text-lg font-semibold text-stone-900 mb-1">{course.name}</h3>
-        <p className="text-stone-500 text-sm">{course.tagline}</p>
-        <p className="text-amber-600 text-xs font-mono mt-1.5">{course.duration}</p>
+        <h3 className="card-title">{course.name}</h3>
+        <p className="card-tagline">{course.tagline}</p>
+        <p className="duration-text">{course.duration}</p>
       </div>
 
-      <div className="flex-1">
-        <p className="text-[10px] font-mono uppercase tracking-widest text-amber-600 mb-3">Modules</p>
-        <div className="flex flex-wrap gap-2">
-          {course.modules.map((m) => (
-            <span
-              key={m}
-              className="text-xs px-2.5 py-1 rounded-lg text-stone-600 bg-stone-50 border border-stone-200"
-            >
-              {m}
-            </span>
-          ))}
+      <div className="price-box">
+        <div>
+          <div className="price-with-original">
+            <span className="price">Rs. {course.price.toLocaleString()}</span>
+            <span className="price-original">Rs. {course.originalPrice.toLocaleString()}</span>
+          </div>
+          <p className="price-unit">{isLive ? "2 live classes" : "lifetime access"}</p>
         </div>
+        <span className="discount-badge">{discount}% OFF</span>
       </div>
 
-      {/* View Outline Button */}
+      <div className="delivery-box">
+        {isLive ? (
+          <>
+            <p className="delivery-item">✅ Interactive Q&A each session</p>
+            <p className="delivery-item">🔗 Google Meet link shared before class</p>
+            <p className="delivery-gold">⚡ Class starts within 1–2 days of payment</p>
+          </>
+        ) : (
+          <>
+            <p className="delivery-item">📹 Lifetime access to recordings</p>
+            <p className="delivery-gold">📨 Access sent within 3 days of payment</p>
+          </>
+        )}
+      </div>
+
       <button
-        onClick={() => setShowOutline(!showOutline)}
-        className="flex items-center justify-center gap-2 w-full py-2 rounded-lg text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 hover:bg-amber-100 transition-colors"
+        onClick={() => setShowOutline(p => !p)}
+        className="btn-outline-toggle"
       >
-        <FileText size={13} />
-        {showOutline ? "Hide Full Outline" : "View Full Course Outline"}
-        <ChevronDown size={13} className={`transition-transform ${showOutline ? "rotate-180" : ""}`} />
+        📋 {showOutline ? "Hide" : "View"} Full Course Outline {showOutline ? "▲" : "▼"}
       </button>
 
-      {/* Detailed Outline Section */}
       {showOutline && (
-        <div className="mt-2 pt-4 border-t border-stone-100">
-          <p className="text-xs font-semibold text-amber-700 mb-3 flex items-center gap-1">
-            <BookOpen size={12} /> {course.outlineTitle}
-          </p>
-          <div className="space-y-3 max-h-80 overflow-y-auto pr-1">
-            {course.outline.map((item: any, idx: number) => (
-              <div key={idx} className="border-l-2 border-amber-200 pl-3">
-                <p className="text-xs font-semibold text-stone-800">
-                  {item.class || item.module}: {item.title}
-                </p>
-                <ul className="mt-1 space-y-0.5">
-                  {item.topics.map((topic: string, tIdx: number) => (
-                    <li key={tIdx} className="text-[11px] text-stone-500 flex items-start gap-1.5">
-                      <ChevronRight size={10} className="mt-0.5 shrink-0 text-amber-500" />
-                      {topic}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {isLive && (
-        <ul className="space-y-1.5">
-          {["Interactive Q&A each session", "Google Meet link shared before class"].map((perk) => (
-            <li key={perk} className="flex items-center gap-2 text-xs text-stone-500">
-              <CheckCircle size={12} className="text-green-500 shrink-0" />
-              {perk}
-            </li>
+        <div className="outline-box">
+          {course.outline.map((item: any, idx: number) => (
+            <div key={idx} className="outline-item">
+              <p className="outline-header">
+                {item.class || item.module}: {item.title}
+              </p>
+              <ul className="outline-topics">
+                {item.topics.map((t: string, ti: number) => (
+                  <li key={ti} className="outline-topic">
+                    <span className="outline-arrow">›</span> {t}
+                  </li>
+                ))}
+              </ul>
+            </div>
           ))}
-        </ul>
+        </div>
       )}
 
-      <div className="pt-4 border-t border-stone-100">
-        <div className="flex items-center justify-between mb-4">
-          <span className="text-2xl font-bold text-amber-700">Rs. {course.price.toLocaleString()}</span>
-          <span className="text-stone-400 text-xs">{isLive ? "2 live classes" : "lifetime access"}</span>
-        </div>
-        <button
-          onClick={() =>
-            addItem({
-              id: course.id,
-              name: `${course.name} (${isLive ? "Live" : "Recorded"})`,
-              price: course.price,
-              type: "course",
-              description: course.tagline,
-            })
-          }
-          disabled={!!inCart}
-          className={`w-full py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 border ${
-            inCart
-              ? "bg-stone-100 text-stone-400 border-stone-200 cursor-default"
-              : isLive
-              ? "bg-amber-600 text-white border-amber-600 hover:bg-amber-700"
-              : "border-amber-400 text-amber-700 hover:bg-amber-50"
-          }`}
-        >
-          {inCart ? "✓ Added to Cart" : isLive ? "Book Live Classes" : "Enroll Now"}
-        </button>
-      </div>
+      <button
+        onClick={() => addItem({
+          id: course.id,
+          name: `${course.name} (${isLive ? "Live" : "Recorded"})`,
+          price: course.price,
+          type: "course",
+          courseType: course.courseType,
+          description: course.tagline,
+        })}
+        disabled={inCart}
+        className={`btn-add ${inCart ? "btn-added" : isLive ? "btn-primary" : "btn-outline-gold"}`}
+      >
+        {inCart ? "✓ Enrolled" : isLive ? "Book Live Classes" : "Enroll Now"}
+      </button>
     </div>
   );
 }
 
-function CartButton() {
-  const { count } = useCart();
-  return (
-    <Link href="/cart" className="fixed bottom-6 right-6 z-50">
-      <div className="relative">
-        <div className="bg-amber-600 text-white p-3 rounded-full shadow-lg hover:bg-amber-700 transition-colors">
-          <ShoppingCart size={24} />
-        </div>
-        {count > 0 && (
-          <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
-            {count}
-          </span>
-        )}
-      </div>
-    </Link>
-  );
-}
-
+// ─── HOME PAGE (with useEffect for CSS to fix hydration) ──────────────────────
 export default function Home() {
-  return (
-    <div className="min-h-screen bg-[#fafaf8] text-stone-900">
-      <CartButton />
+  const { count } = useCart();
+  const [isMounted, setIsMounted] = useState(false);
 
-      {/* HERO */}
-      <section className="relative min-h-screen flex items-center justify-center px-6 pt-20 overflow-hidden">
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            backgroundImage:
-              "linear-gradient(rgba(180,140,60,0.06) 1px,transparent 1px),linear-gradient(90deg,rgba(180,140,60,0.06) 1px,transparent 1px)",
-            backgroundSize: "48px 48px",
-          }}
-        />
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{ background: "radial-gradient(ellipse 70% 60% at 50% 40%, #fafaf8 40%, transparent 100%)" }}
-        />
-        <div className="relative z-10 text-center max-w-3xl mx-auto">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-8 bg-amber-50 border border-amber-200">
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-            <span className="text-[11px] font-mono tracking-widest text-amber-700 uppercase">AI Solutions Expert</span>
+  // Fix hydration mismatch: only load CSS after mount
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  const scrollTo = (id: string) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  if (!isMounted) return null; // Prevents rendering until client-side
+
+  return (
+    <div className="site-wrapper">
+      <style>{`
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+        body { background: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #c0c0c0; border-radius: 3px; }
+
+        /* ── BANNER (White Theme) ── */
+        .sale-banner { background: linear-gradient(90deg,#fff0e0,#ffe8d4,#fff0e0); border-bottom: 1px solid #f0c48b; padding: 10px 16px; position: sticky; top: 0; z-index: 100; }
+        .sale-banner-inner { display: flex; align-items: center; justify-content: center; gap: 16px; flex-wrap: wrap; }
+        .sale-title { display: flex; align-items: center; gap: 8px; color: #d45113; font-weight: 700; font-size: 13px; letter-spacing: .05em; }
+        .sale-prices { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px; color: #1e1a14; }
+        .gold { color: #d45113; }
+        .bold { font-weight: 700; }
+        .strike { color: #999; text-decoration: line-through; font-size: 11px; }
+        .dot { color: #ccc; }
+        .muted { color: #666; }
+        .muted-sm { color: #888; font-size: 12px; }
+
+        /* ── NAV (White Theme) ── */
+        .main-nav { background: rgba(255,255,255,.95); backdrop-filter: blur(12px); border-bottom: 1px solid #eee; padding: 0 24px; height: 60px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 41px; z-index: 99; }
+        .nav-logo { background: none; border: none; cursor: pointer; color: #d45113; font-weight: 800; font-size: 18px; letter-spacing: -.02em; }
+        .nav-logo-white { color: #1e1a14; }
+        .nav-links { display: flex; align-items: center; gap: 24px; }
+        @media(max-width:640px){ .nav-links { display: none; } }
+        .nav-link { background: none; border: none; cursor: pointer; color: #666; font-size: 13px; text-transform: capitalize; letter-spacing: .03em; padding: 4px 0; transition: color .2s; }
+        .nav-link:hover { color: #d45113; }
+        .nav-cart { position: relative; background: none; border: 1px solid #ddd; border-radius: 10px; padding: 8px 14px; cursor: pointer; display: flex; align-items: center; gap: 8px; color: #1e1a14; font-size: 13px; text-decoration: none; transition: border-color .2s; }
+        .nav-cart:hover { border-color: #d45113; }
+        .cart-badge { position: absolute; top: -8px; right: -8px; background: #d45113; color: #fff; width: 18px; height: 18px; border-radius: 50%; font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center; }
+
+        /* ── HERO (White Theme) ── */
+        .hero { min-height: 90vh; background: #ffffff; display: flex; align-items: center; justify-content: center; padding: 80px 24px; position: relative; overflow: hidden; }
+        .hero-grid { position: absolute; inset: 0; pointer-events: none; background-image: linear-gradient(rgba(212,81,19,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(212,81,19,.04) 1px,transparent 1px); background-size: 60px 60px; }
+        .hero-glow { position: absolute; top: 20%; left: 50%; transform: translateX(-50%); width: 600px; height: 300px; background: radial-gradient(ellipse,rgba(212,81,19,.06) 0%,transparent 70%); pointer-events: none; }
+        .hero-content { position: relative; text-align: center; max-width: 700px; }
+        .hero-pill { display: inline-flex; align-items: center; gap: 8px; background: rgba(212,81,19,.08); border: 1px solid rgba(212,81,19,.2); border-radius: 100px; padding: 6px 16px; margin-bottom: 32px; }
+        .hero-pill-dot { width: 8px; height: 8px; border-radius: 50%; background: #d45113; box-shadow: 0 0 6px #d45113; }
+        .hero-pill-text { color: #d45113; font-size: 12px; font-weight: 700; letter-spacing: .08em; }
+        .hero-h1 { font-size: clamp(48px,8vw,88px); font-weight: 900; color: #1e1a14; line-height: 1; letter-spacing: -.03em; margin-bottom: 20px; }
+        .hero-outline { color: transparent; -webkit-text-stroke: 2px #d45113; }
+        .hero-sub { color: #666; font-size: clamp(15px,2vw,18px); line-height: 1.7; max-width: 500px; margin: 0 auto 40px; }
+        .hero-accent { color: #d45113; }
+        .hero-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .btn-hero-primary { background: #d45113; color: #fff; border: none; border-radius: 12px; padding: 14px 32px; font-size: 14px; font-weight: 700; cursor: pointer; transition: opacity .2s; }
+        .btn-hero-primary:hover { opacity: .85; }
+        .btn-hero-secondary { background: transparent; color: #d45113; border: 1px solid rgba(212,81,19,.4); border-radius: 12px; padding: 14px 32px; font-size: 14px; font-weight: 600; cursor: pointer; transition: border-color .2s, background .2s; }
+        .btn-hero-secondary:hover { background: rgba(212,81,19,.05); border-color: #d45113; }
+        .hero-stats { display: flex; gap: 48px; justify-content: center; margin-top: 64px; flex-wrap: wrap; }
+        .hero-stat-val { color: #d45113; font-size: 28px; font-weight: 800; }
+        .hero-stat-label { color: #999; font-size: 12px; margin-top: 4px; letter-spacing: .05em; }
+
+        /* ── SALE SPOTLIGHT (White Theme) ── */
+        .sale-spotlight { background: linear-gradient(135deg,#fff8f0,#fff4ea); border-top: 1px solid #f0e0d0; border-bottom: 1px solid #f0e0d0; padding: 60px 24px; position: relative; overflow: hidden; }
+        .sale-spotlight-glow { position: absolute; inset: 0; background: radial-gradient(ellipse 80% 60% at 50% 50%,rgba(212,81,19,.03) 0%,transparent 70%); pointer-events: none; }
+        .sale-spotlight-inner { max-width: 900px; margin: 0 auto; position: relative; }
+        .sale-badge-pill { display: inline-flex; align-items: center; gap: 8px; background: #d45113; color: #fff; border-radius: 100px; padding: 6px 20px; font-size: 12px; font-weight: 800; letter-spacing: .08em; margin-bottom: 16px; }
+        .sale-h2 { color: #1e1a14; font-size: clamp(28px,5vw,40px); font-weight: 800; margin-bottom: 8px; letter-spacing: -.02em; }
+        .sale-sub { color: #666; font-size: 15px; margin-bottom: 36px; }
+        .sale-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(200px,1fr)); gap: 16px; margin-bottom: 32px; }
+        .sale-box { background: #fff; border: 1px solid rgba(212,81,19,.2); border-radius: 16px; padding: 28px 24px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,.02); transition: transform .2s, box-shadow .2s; }
+        .sale-box:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(0,0,0,.05); }
+        .sale-box-pct { display: inline-block; background: rgba(212,81,19,.1); color: #d45113; border-radius: 8px; padding: 3px 10px; font-size: 11px; font-weight: 700; letter-spacing: .06em; margin-bottom: 12px; }
+        .sale-box-label { color: #1e1a14; font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+        .sale-box-price { color: #d45113; font-size: 36px; font-weight: 900; line-height: 1.1; margin-bottom: 4px; }
+        .sale-box-orig { color: #aaa; font-size: 14px; text-decoration: line-through; margin-bottom: 8px; }
+        .sale-box-detail { color: #888; font-size: 12px; }
+
+        /* ── SECTION (White Theme) ── */
+        .section-dark { background: #fefcf8; padding: 80px 24px; }
+        .section-darker { background: #ffffff; padding: 80px 24px; }
+        .section-inner { max-width: 1100px; margin: 0 auto; }
+        .section-inner-lg { max-width: 1000px; margin: 0 auto; }
+        .section-header { text-align: center; margin-bottom: 48px; }
+        .section-eyebrow { color: #d45113; font-size: 12px; font-weight: 700; letter-spacing: .1em; margin-bottom: 12px; }
+        .section-h2 { color: #1e1a14; font-size: clamp(28px,5vw,44px); font-weight: 800; letter-spacing: -.02em; }
+        .section-h2 span { color: #d45113; }
+        .section-desc { color: #666; margin-top: 12px; max-width: 480px; margin-left: auto; margin-right: auto; font-size: 14px; line-height: 1.7; }
+        .courses-sale-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(212,81,19,.06); border: 1px solid rgba(212,81,19,.2); border-radius: 12px; padding: 10px 20px; margin-top: 20px; flex-wrap: wrap; justify-content: center; }
+        .courses-sale-badge span:first-child { font-size: 14px; }
+
+        /* ── CARDS GRID (2 courses per row) ── */
+        .cards-grid-3 { display: grid; grid-template-columns: repeat(auto-fit,minmax(280px,1fr)); gap: 20px; }
+        .cards-grid-courses { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
+        @media (max-width: 768px) { .cards-grid-courses { grid-template-columns: 1fr; } }
+
+        /* ── CARD (White Theme) ── */
+        .card { background: #ffffff; border: 1px solid #eee; border-radius: 20px; padding: 28px; display: flex; flex-direction: column; gap: 16px; transition: box-shadow .3s, border-color .3s; position: relative; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,.02); }
+        .card:hover { border-color: #d45113; box-shadow: 0 12px 24px rgba(0,0,0,.04); }
+        .service-card { padding: 32px; gap: 20px; }
+        .course-card { padding: 28px; }
+        .course-live { border-color: rgba(212,81,19,.2); }
+        .live-ribbon { position: absolute; top: 16px; right: -28px; background: #d45113; color: #fff; font-size: 10px; font-weight: 800; letter-spacing: .08em; padding: 4px 40px; transform: rotate(35deg); }
+        .card-header { display: flex; align-items: flex-start; justify-content: space-between; padding-right: 20px; }
+        .card-icon { width: 48px; height: 48px; border-radius: 14px; background: rgba(212,81,19,.08); border: 1px solid rgba(212,81,19,.15); display: flex; align-items: center; justify-content: center; font-size: 22px; }
+        .badge { font-size: 11px; font-weight: 700; letter-spacing: .08em; border-radius: 100px; padding: 4px 12px; }
+        .badge-gold { color: #d45113; background: rgba(212,81,19,.08); border: 1px solid rgba(212,81,19,.2); }
+        .badge-live { color: #d45113; background: rgba(212,81,19,.1); border: 1px solid rgba(212,81,19,.3); }
+        .badge-recorded { color: #888; background: #f5f5f5; border: 1px solid #e0e0e0; }
+        .card-title { color: #1e1a14; font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+        .card-tagline { color: #888; font-size: 14px; }
+        .duration-text { color: #d45113; font-size: 12px; font-family: monospace; margin-top: 6px; }
+        .feature-list { list-style: none; display: flex; flex-direction: column; gap: 10px; flex: 1; }
+        .feature-item { display: flex; align-items: flex-start; gap: 10px; color: #666; font-size: 13px; }
+        .check { color: #d45113; margin-top: 1px; flex-shrink: 0; }
+        .card-note { font-size: 11px; color: #aaa; font-style: italic; border-left: 2px solid rgba(212,81,19,.3); padding-left: 12px; line-height: 1.6; }
+        .card-footer { border-top: 1px solid #f0f0f0; padding-top: 20px; }
+        .price-row { display: flex; align-items: baseline; gap: 6px; margin-bottom: 6px; }
+        .price { color: #d45113; font-size: 28px; font-weight: 800; }
+        .price-unit { color: #aaa; font-size: 12px; }
+        .payment-info { color: #aaa; font-size: 11px; margin-bottom: 12px; }
+        .price-box { background: rgba(212,81,19,.04); border: 1px solid rgba(212,81,19,.1); border-radius: 12px; padding: 16px 18px; display: flex; align-items: center; justify-content: space-between; }
+        .price-with-original { display: flex; align-items: baseline; gap: 8px; }
+        .price-original { color: #bbb; font-size: 14px; text-decoration: line-through; }
+        .discount-badge { background: #d45113; color: #fff; border-radius: 8px; padding: 6px 12px; font-size: 13px; font-weight: 800; }
+        .delivery-box { background: #fafafa; border-radius: 10px; padding: 12px 14px; }
+        .delivery-item { color: #777; font-size: 12px; margin-bottom: 4px; }
+        .delivery-gold { color: #d45113; font-size: 12px; }
+
+        /* ── BUTTONS ── */
+        .btn-add { width: 100%; padding: 13px; border-radius: 12px; font-size: 14px; font-weight: 700; cursor: pointer; transition: opacity .2s; }
+        .btn-add:disabled { cursor: default; }
+        .btn-primary { background: #d45113; color: #fff; border: none; }
+        .btn-primary:hover:not(:disabled) { opacity: .85; }
+        .btn-outline-gold { background: transparent; color: #d45113; border: 1px solid rgba(212,81,19,.4); }
+        .btn-outline-gold:hover:not(:disabled) { background: rgba(212,81,19,.05); border-color: #d45113; }
+        .btn-added { background: #f5f5f5; color: #aaa; border: 1px solid #e0e0e0; }
+        .btn-outline-toggle { background: transparent; border: 1px solid #e0e0e0; border-radius: 10px; padding: 10px; cursor: pointer; color: #888; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 6px; transition: border-color .2s,color .2s; width: 100%; margin-top: 8px; }
+        .btn-outline-toggle:hover { border-color: #d45113; color: #d45113; }
+        .btn-cta-primary { background: #d45113; color: #fff; border: none; border-radius: 12px; padding: 14px 36px; font-size: 15px; font-weight: 700; cursor: pointer; transition: opacity .2s; }
+        .btn-cta-primary:hover { opacity: .85; }
+
+        /* ── OUTLINE (White Theme) ── */
+        .outline-box { max-height: 320px; overflow-y: auto; border: 1px solid #f0f0f0; border-radius: 12px; padding: 16px; background: #fefcf8; margin-top: 8px; }
+        .outline-item { border-left: 2px solid rgba(212,81,19,.3); padding-left: 14px; margin-bottom: 16px; }
+        .outline-header { color: #d45113; font-size: 12px; font-weight: 700; margin-bottom: 6px; }
+        .outline-topics { list-style: none; display: flex; flex-direction: column; gap: 4px; }
+        .outline-topic { color: #888; font-size: 12px; display: flex; gap: 6px; }
+        .outline-arrow { color: #d0c0b0; flex-shrink: 0; }
+
+        /* ── PRICING (White Theme) ── */
+        .pricing-table-wrap { background: #fff; border: 1px solid #eee; border-radius: 20px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,.02); }
+        .pricing-table { width: 100%; border-collapse: collapse; }
+        .pricing-table thead { background: #fefcf8; border-bottom: 1px solid #f0f0f0; }
+        .pricing-table th { text-align: left; padding: 16px 24px; color: #aaa; font-size: 11px; font-weight: 700; letter-spacing: .08em; }
+        .pricing-table th:last-child { text-align: right; }
+        .pricing-table td { padding: 16px 24px; border-bottom: 1px solid #f5f5f5; }
+        .pricing-table tr:last-child td { border-bottom: none; }
+        .pricing-table tr:hover td { background: #fefcf8; }
+        .pricing-td-inner { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .pricing-name { color: #333; font-size: 14px; }
+        .type-service { font-size: 10px; font-weight: 700; letter-spacing: .06em; padding: 2px 8px; border-radius: 100px; background: rgba(212,81,19,.08); color: #d45113; border: 1px solid rgba(212,81,19,.2); white-space: nowrap; }
+        .type-live { font-size: 10px; font-weight: 700; letter-spacing: .06em; padding: 2px 8px; border-radius: 100px; background: rgba(100,200,100,.08); color: #2c8f5c; border: 1px solid rgba(100,200,100,.2); white-space: nowrap; }
+        .type-recorded { font-size: 10px; font-weight: 700; letter-spacing: .06em; padding: 2px 8px; border-radius: 100px; background: #f5f5f5; color: #888; border: 1px solid #e0e0e0; white-space: nowrap; }
+        .pricing-price { color: #d45113; font-weight: 700; font-size: 15px; text-align: right; }
+        .pricing-orig { color: #bbb; font-size: 12px; text-decoration: line-through; }
+        .pricing-note { margin-top: 16px; padding: 16px 20px; background: rgba(212,81,19,.03); border: 1px solid rgba(212,81,19,.1); border-radius: 14px; color: #888; font-size: 12px; line-height: 1.7; }
+
+        /* ── WHY ME (White Theme) ── */
+        .whyme-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(280px,1fr)); gap: 48px; align-items: center; }
+        .whyme-eyebrow { color: #d45113; font-size: 12px; font-weight: 700; letter-spacing: .1em; margin-bottom: 12px; }
+        .whyme-h2 { color: #1e1a14; font-size: clamp(28px,4vw,36px); font-weight: 800; margin-bottom: 20px; letter-spacing: -.02em; }
+        .whyme-h2 span { color: #d45113; }
+        .whyme-p { color: #666; line-height: 1.8; margin-bottom: 28px; font-size: 14px; }
+        .whyme-feature { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+        .whyme-icon { width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0; background: rgba(212,81,19,.08); border: 1px solid rgba(212,81,19,.15); display: flex; align-items: center; justify-content: center; font-size: 16px; }
+        .whyme-feat-text { color: #777; font-size: 14px; }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .stat-card { background: #fff; border: 1px solid #eee; border-radius: 16px; padding: 24px; text-align: center; transition: border-color .3s, box-shadow .3s; }
+        .stat-card:hover { border-color: #d45113; box-shadow: 0 8px 20px rgba(0,0,0,.04); }
+        .stat-val { color: #d45113; font-size: 28px; font-weight: 800; margin-bottom: 4px; }
+        .stat-label { color: #1e1a14; font-size: 13px; font-weight: 600; }
+        .stat-desc { color: #aaa; font-size: 11px; margin-top: 4px; }
+
+        /* ── CONTACT (White Theme) ── */
+        .contact-section { background: #fefcf8; border-top: 1px solid #f0e0d0; padding: 80px 24px; }
+        .contact-inner { max-width: 600px; margin: 0 auto; text-align: center; }
+        .contact-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 24px; }
+        .btn-wa { display: inline-flex; align-items: center; gap: 8px; background: transparent; color: #25D366; border: 1px solid rgba(37,211,102,.3); border-radius: 12px; padding: 14px 32px; font-size: 14px; font-weight: 700; text-decoration: none; transition: border-color .2s; }
+        .btn-wa:hover { border-color: #25D366; }
+
+        /* ── CART FLOAT ── */
+        .cart-float { position: fixed; bottom: 24px; right: 24px; z-index: 200; }
+        .cart-float-btn { background: #d45113; color: #fff; border: none; width: 56px; height: 56px; border-radius: 50%; font-size: 22px; cursor: pointer; box-shadow: 0 4px 20px rgba(212,81,19,.3); transition: transform .2s; display: flex; align-items: center; justify-content: center; text-decoration: none; }
+        .cart-float-btn:hover { transform: scale(1.05); }
+        .cart-float-badge { position: absolute; top: -4px; right: -4px; background: #ff4444; color: #fff; width: 20px; height: 20px; border-radius: 50%; font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center; }
+      `}</style>
+
+      <SaleBanner />
+      <Nav />
+
+      {/* HERO with Summer Sale Highlight */}
+      <section className="hero">
+        <div className="hero-grid" />
+        <div className="hero-glow" />
+        <div className="hero-content">
+          <div className="hero-pill">
+            <span className="hero-pill-dot" />
+            <span className="hero-pill-text">🔥 SUMMER SALE — 5 DAYS LEFT! UP TO 37% OFF ON COURSES</span>
           </div>
-          <h1 className="text-5xl md:text-7xl font-bold mb-5 leading-tight tracking-tight">
-            Ahmed <span className="text-amber-600">Memon</span>
+          <h1 className="hero-h1">
+            Ahmed <span className="hero-outline">Memon</span>
           </h1>
-          <p className="text-stone-500 text-lg md:text-xl max-w-xl mx-auto mb-10 leading-relaxed">
-            Transforming businesses with{" "}
-            <span className="text-amber-600 font-medium">AI Automations</span>, intelligent{" "}
-            <span className="text-amber-600 font-medium">Voice Agents</span>, and world-class courses.
+          <p className="hero-sub">
+            AI Automations · Voice Agents · Professional Courses.{" "}
+            <span className="hero-accent">Enroll now at discounted prices!</span>
           </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <a
-              href="#services"
-              className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl text-sm font-semibold bg-amber-600 text-white hover:bg-amber-700 transition-colors"
-            >
-              Explore Services <ArrowRight size={15} />
-            </a>
-            <a
-              href="#courses"
-              className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl text-sm font-semibold border border-stone-300 text-stone-700 hover:border-amber-400 hover:text-amber-700 transition-colors bg-white"
-            >
-              <BookOpen size={15} /> View Courses
-            </a>
+          <div className="hero-btns">
+            <button onClick={() => scrollTo("services")} className="btn-hero-primary">
+              Explore Services →
+            </button>
+            <button onClick={() => scrollTo("courses")} className="btn-hero-secondary">
+              View Sale Courses 🎓
+            </button>
           </div>
-          <div className="mt-20 grid grid-cols-3 gap-6 max-w-sm mx-auto">
-            {[["5+", "Projects"], ["100%", "Satisfaction"], ["1+", "Years Exp."]].map(([val, label]) => (
-              <div key={label} className="text-center">
-                <div className="text-2xl font-bold text-amber-600">{val}</div>
-                <div className="text-stone-400 text-xs mt-0.5">{label}</div>
+          <div className="hero-stats">
+            {[["100%", "Satisfaction"], ["37%", "Off on Courses"]].map(([v, l]) => (
+              <div key={l} style={{ textAlign: "center" }}>
+                <div className="hero-stat-val">{v}</div>
+                <div className="hero-stat-label">{l}</div>
               </div>
             ))}
           </div>
         </div>
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 opacity-30">
-          <div className="w-px h-10 bg-gradient-to-b from-transparent to-amber-600" />
-          <span className="text-[10px] font-mono text-amber-700 tracking-widest">scroll</span>
+      </section>
+
+      {/* SALE SPOTLIGHT */}
+      <section className="sale-spotlight">
+        <div className="sale-spotlight-glow" />
+        <div className="sale-spotlight-inner">
+          <div style={{ textAlign: "center" }}>
+            <div className="sale-badge-pill">🔥 LIMITED TIME — SUMMER SALE</div>
+            <h2 className="sale-h2">
+              Courses at <span style={{ color: "#d45113" }}>Unbeatable Prices</span>
+            </h2>
+            <p className="sale-sub">Only for {SALE_DAYS} days. Enroll before time runs out.</p>
+          </div>
+          <div className="sale-grid">
+            {[
+              { label: "Recorded Course", salePrice: SALE_RECORDED_PRICE, origPrice: ORIGINAL_RECORDED_PRICE, detail: "6 classes · lifetime access" },
+              { label: "Live Course", salePrice: SALE_LIVE_PRICE, origPrice: ORIGINAL_LIVE_PRICE, detail: "2 live sessions · Google Meet" },
+            ].map(item => (
+              <div key={item.label} className="sale-box">
+                <div className="sale-box-pct">{Math.round((1 - item.salePrice / item.origPrice) * 100)}% OFF</div>
+                <div className="sale-box-label">{item.label}</div>
+                <div className="sale-box-price">Rs. {item.salePrice.toLocaleString()}</div>
+                <div className="sale-box-orig">Rs. {item.origPrice.toLocaleString()}</div>
+                <div className="sale-box-detail">{item.detail}</div>
+              </div>
+            ))}
+          </div>
+          <div style={{ textAlign: "center" }}>
+            <button onClick={() => scrollTo("courses")} className="btn-cta-primary">
+              Enroll Now at Sale Price →
+            </button>
+          </div>
         </div>
       </section>
 
       {/* SERVICES */}
-      <section id="services" className="py-24 px-6 bg-white">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <span className="text-[11px] font-mono uppercase tracking-widest text-amber-600">What I Build</span>
-            <h2 className="text-4xl md:text-5xl font-bold text-stone-900 mt-3">
-              Premium <span className="text-amber-600">Services</span>
-            </h2>
-            <p className="text-stone-500 mt-4 max-w-xl mx-auto text-sm leading-relaxed">
-              End-to-end AI solutions crafted with precision. You bring the vision — I build the intelligence.
-            </p>
+      <section id="services" className="section-dark">
+        <div className="section-inner">
+          <div className="section-header">
+            <p className="section-eyebrow">WHAT I BUILD</p>
+            <h2 className="section-h2">Premium <span>Services</span></h2>
+            <p className="section-desc">End-to-end AI solutions crafted with precision. You bring the vision — I build the intelligence.</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {SERVICES.map((svc) => (
-              <ServiceCard key={svc.id} svc={svc} />
-            ))}
+          <div className="cards-grid-3">
+            {SERVICES.map(svc => <ServiceCard key={svc.id} svc={svc} />)}
           </div>
         </div>
       </section>
 
-      <div className="border-t border-stone-100 mx-6" />
-
-      {/* COURSES */}
-      <section id="courses" className="py-24 px-6 bg-[#fafaf8]">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <span className="text-[11px] font-mono uppercase tracking-widest text-amber-600">Learn From Me</span>
-            <h2 className="text-4xl md:text-5xl font-bold text-stone-900 mt-3">
-              Expert-Led <span className="text-amber-600">Courses</span>
-            </h2>
-            <p className="text-stone-500 mt-4 max-w-xl mx-auto text-sm leading-relaxed">
-              Choose your learning style — self-paced recorded videos or interactive live sessions on Google Meet.
-            </p>
-          </div>
-          <div className="flex items-center justify-center gap-6 mb-10">
-            <div className="flex items-center gap-2 text-xs text-stone-500">
-              <Video size={13} className="text-stone-400" />
-              <span>Recorded — Rs. 12,000 · 6 classes · ~15 min each · Lifetime access</span>
-            </div>
-            <div className="w-px h-4 bg-stone-200" />
-            <div className="flex items-center gap-2 text-xs text-stone-500">
-              <MonitorPlay size={13} className="text-green-500" />
-              <span>Live — Rs. 20,000 · 2 classes · ~45 min each · Google Meet</span>
+      {/* COURSES - 2 per row with restored details */}
+      <section id="courses" className="section-darker">
+        <div className="section-inner-lg">
+          <div className="section-header">
+            <p className="section-eyebrow">LEARN FROM ME</p>
+            <h2 className="section-h2">Expert-Led <span>Courses</span></h2>
+            <p className="section-desc">Choose your learning style — self-paced recorded videos or interactive live sessions on Google Meet.</p>
+            <div className="courses-sale-badge">
+              <span>🔥</span>
+              <span style={{ color: "#d45113", fontWeight: 700, fontSize: "14px" }}>
+                Summer Sale: Recorded Rs. {SALE_RECORDED_PRICE.toLocaleString()} · Live Rs. {SALE_LIVE_PRICE.toLocaleString()}
+              </span>
+              <span style={{ color: "#aaa", fontSize: "12px" }}>
+                (was Rs. {ORIGINAL_RECORDED_PRICE.toLocaleString()} / Rs. {ORIGINAL_LIVE_PRICE.toLocaleString()})
+              </span>
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {COURSES.map((c) => (
-              <CourseCard key={c.id} course={c} />
-            ))}
+          <div className="cards-grid-courses">
+            {COURSES.map(c => <CourseCard key={c.id} course={c} />)}
           </div>
         </div>
       </section>
-
-      <div className="border-t border-stone-100 mx-6" />
 
       {/* PRICING */}
-      <section id="pricing" className="py-24 px-6 bg-white">
-        <div className="max-w-3xl mx-auto">
-          <div className="text-center mb-14">
-            <span className="text-[11px] font-mono uppercase tracking-widest text-amber-600">Transparent</span>
-            <h2 className="text-4xl md:text-5xl font-bold text-stone-900 mt-3">
-              Clear <span className="text-amber-600">Pricing</span>
-            </h2>
+      <section id="pricing" className="section-dark">
+        <div style={{ maxWidth: "800px", margin: "0 auto" }}>
+          <div className="section-header">
+            <p className="section-eyebrow">TRANSPARENT</p>
+            <h2 className="section-h2">Clear <span>Pricing</span></h2>
           </div>
-          <div className="rounded-2xl border border-stone-200 overflow-hidden bg-white">
-            <table className="w-full">
-              <thead className="bg-stone-50 border-b border-stone-200">
-                <tr>
-                  <th className="text-left px-6 py-4 text-[10px] font-mono uppercase tracking-widest text-stone-500">
-                    Service / Course
-                  </th>
-                  <th className="text-right px-6 py-4 text-[10px] font-mono uppercase tracking-widest text-stone-500">
-                    Price (PKR)
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {[
-                  { name: "AI Automation (n8n only)", price: "30,000", type: "Service" },
-                  { name: "AI Call / Voice Agent (any type)", price: "50,000", type: "Service" },
-                  { name: "Complete Website", price: "20,000", type: "Service" },
-                  { name: "AI Automation Mastery — Recorded (6 classes · ~15 min each)", price: "12,000", type: "Recorded" },
-                  { name: "AI Automation Mastery — Live (2 classes · ~45 min each · Google Meet)", price: "20,000", type: "Live" },
-                  { name: "AI Voice Agent Course — Recorded (6 classes · ~15 min each)", price: "12,000", type: "Recorded" },
-                  { name: "AI Voice Agent Course — Live (2 classes · ~45 min each · Google Meet)", price: "20,000", type: "Live" },
-                ].map((row, i) => (
-                  <tr key={i} className="border-b border-stone-100 last:border-0 hover:bg-stone-50 transition-colors">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <ChevronRight size={13} className="text-amber-500 shrink-0" />
-                        <span className="text-stone-700 text-sm">{row.name}</span>
-                        <span
-                          className={`text-[10px] px-2 py-0.5 rounded-full font-mono whitespace-nowrap ${
-                            row.type === "Service"
-                              ? "bg-amber-50 text-amber-700 border border-amber-200"
-                              : row.type === "Live"
-                              ? "bg-green-50 text-green-700 border border-green-200"
-                              : "bg-stone-100 text-stone-500 border border-stone-200"
-                          }`}
-                        >
-                          {row.type}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-right font-semibold text-amber-700 text-sm">
-                      Rs. {row.price}
-                    </td>
+          <div className="pricing-table-wrap">
+            <div style={{ overflowX: "auto" }}>
+              <table className="pricing-table" style={{ minWidth: "500px" }}>
+                <thead>
+                  <tr>
+                    <th>SERVICE / COURSE</th>
+                    <th>PRICE (PKR)</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {[
+                    { name: "AI Automation (n8n only)", price: "30,000", type: "Service" },
+                    { name: "AI Call / Voice Agent", price: "50,000", type: "Service" },
+                    { name: "Complete Website", price: "20,000", type: "Service" },
+                    { name: "AI Automation Mastery — Recorded", price: `${SALE_RECORDED_PRICE.toLocaleString()} 🔥`, origPrice: "12,000", type: "Recorded" },
+                    { name: "AI Automation Mastery — Live", price: `${SALE_LIVE_PRICE.toLocaleString()} 🔥`, origPrice: "20,000", type: "Live" },
+                    { name: "AI Voice Agent Course — Recorded", price: `${SALE_RECORDED_PRICE.toLocaleString()} 🔥`, origPrice: "12,000", type: "Recorded" },
+                    { name: "AI Voice Agent Course — Live", price: `${SALE_LIVE_PRICE.toLocaleString()} 🔥`, origPrice: "20,000", type: "Live" },
+                  ].map((row, i) => (
+                    <tr key={i}>
+                      <td>
+                        <div className="pricing-td-inner">
+                          <span className="pricing-name">{row.name}</span>
+                          <span className={row.type === "Service" ? "type-service" : row.type === "Live" ? "type-live" : "type-recorded"}>
+                            {row.type}
+                          </span>
+                        </div>
+                        </td>
+                        <td>
+                        <div style={{ textAlign: "right" }}>
+                          <div className="pricing-price">Rs. {row.price}</div>
+                          {row.origPrice && <div className="pricing-orig">Rs. {row.origPrice}</div>}
+                        </div>
+                        </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
-          <div className="mt-5 p-5 rounded-xl bg-amber-50 border border-amber-200">
-            <p className="text-xs text-stone-500 leading-relaxed">
-              <span className="text-amber-700 font-semibold">Note:</span> All platform accounts and associated costs
-              (n8n, voice AI services, hosting, domains, etc.) are the responsibility of the client. Ahmed Memon will
-              build the workflows, agents, and websites only. Costs of third-party services are{" "}
-              <strong className="text-stone-700">not included</strong> in the pricing above.
-            </p>
-          </div>
+          <p className="pricing-note">
+            <span style={{ color: "#d45113", fontWeight: 700 }}>Note:</span> Platform accounts and associated costs (n8n, voice AI, hosting, etc.) are the responsibility of the client. Ahmed builds the workflows, agents, and websites only.
+          </p>
         </div>
       </section>
 
-      <div className="border-t border-stone-100 mx-6" />
-
       {/* WHY ME */}
-      <section id="about" className="py-24 px-6 bg-[#fafaf8]">
-        <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-16 items-center">
-          <div>
-            <span className="text-[11px] font-mono uppercase tracking-widest text-amber-600">Why Choose Me</span>
-            <h2 className="text-4xl font-bold text-stone-900 mt-3 mb-6">
-              Results-Driven <span className="text-amber-600">AI Expert</span>
-            </h2>
-            <p className="text-stone-500 leading-relaxed mb-8 text-sm">
-              I don't just build automations — I engineer intelligent systems that save time, cut costs, and scale
-              businesses. With deep expertise in AI voice agents and workflow automation, every project is built to
-              production standards.
-            </p>
-            <div className="space-y-3">
+      <section id="about" style={{ background: "#ffffff", padding: "80px 24px" }}>
+        <div style={{ maxWidth: "1000px", margin: "0 auto" }}>
+          <div className="whyme-grid">
+            <div>
+              <p className="whyme-eyebrow">WHY CHOOSE ME</p>
+              <h2 className="whyme-h2">Results-Driven<br /><span>AI Expert</span></h2>
+              <p className="whyme-p">I engineer intelligent systems that save time, cut costs, and scale businesses. Every project is built to production standards.</p>
               {[
-                { icon: Zap, text: "Fast turnaround with quality delivery" },
-                { icon: Award, text: "Production-ready, documented solutions" },
-                { icon: Users, text: "Dedicated post-delivery support" },
-                { icon: Star, text: "100% client satisfaction focus" },
-              ].map(({ icon: Icon, text }) => (
-                <div key={text} className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 bg-amber-50 border border-amber-200">
-                    <Icon size={13} className="text-amber-600" />
-                  </div>
-                  <span className="text-stone-600 text-sm">{text}</span>
+                { icon: "⚡", text: "Fast turnaround with quality delivery" },
+                { icon: "🏆", text: "Production-ready, documented solutions" },
+                { icon: "👥", text: "Dedicated post-delivery support" },
+                { icon: "⭐", text: "100% client satisfaction focus" },
+              ].map(({ icon, text }) => (
+                <div key={text} className="whyme-feature">
+                  <div className="whyme-icon">{icon}</div>
+                  <span className="whyme-feat-text">{text}</span>
+                </div>
+              ))}
+            </div>
+            <div className="stats-grid">
+              {[
+                { val: "30K", label: "AI Automation", desc: "n8n workflow builds" },
+                { val: "50K", label: "AI Call Agent", desc: "Voice-ready AI systems" },
+                { val: "20K", label: "Website", desc: "Full business site" },
+                { val: "∞", label: "Support", desc: "Post-delivery guidance" },
+              ].map(s => (
+                <div key={s.label} className="stat-card">
+                  <div className="stat-val">Rs. {s.val}</div>
+                  <div className="stat-label">{s.label}</div>
+                  <div className="stat-desc">{s.desc}</div>
                 </div>
               ))}
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            {[
-              { val: "30K", label: "AI Automation", desc: "n8n workflow builds" },
-              { val: "50K", label: "AI Call Agent", desc: "Voice-ready AI systems" },
-              { val: "20K", label: "Website", desc: "Full business site" },
-              { val: "∞", label: "Support", desc: "Post-delivery guidance" },
-            ].map((s) => (
-              <div
-                key={s.label}
-                className="rounded-2xl p-5 text-center bg-white border border-stone-200 hover:border-amber-300 transition-colors"
-              >
-                <div className="text-3xl font-bold text-amber-600 mb-1">Rs. {s.val}</div>
-                <div className="text-stone-800 text-sm font-medium">{s.label}</div>
-                <div className="text-stone-400 text-xs mt-1">{s.desc}</div>
-              </div>
-            ))}
-          </div>
         </div>
       </section>
-
-      <div className="border-t border-stone-100 mx-6" />
 
       {/* CONTACT */}
-      <section id="contact" className="py-24 px-6 bg-white">
-        <div className="max-w-xl mx-auto text-center">
-          <span className="text-[11px] font-mono uppercase tracking-widest text-amber-600">Get Started</span>
-          <h2 className="text-4xl md:text-5xl font-bold text-stone-900 mt-3 mb-5">
-            Ready to <span className="text-amber-600">Build?</span>
-          </h2>
-          <p className="text-stone-500 mb-10 leading-relaxed text-sm">
-            Add your desired service to the cart and proceed to checkout. Once payment is confirmed, your project
-            begins immediately.
+      <section id="contact" className="contact-section">
+        <div className="contact-inner">
+          <p className="section-eyebrow">GET STARTED</p>
+          <h2 className="section-h2" style={{ marginBottom: "16px" }}>Ready to <span>Build?</span></h2>
+          <p style={{ color: "#666", marginBottom: "36px", lineHeight: 1.8, fontSize: "14px" }}>
+            Add your desired service or course to the cart and checkout. Payment confirmation and you're good to go!
           </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Link
-              href="/cart"
-              className="inline-flex items-center gap-2 justify-center px-8 py-3.5 rounded-xl text-sm font-semibold bg-amber-600 text-white hover:bg-amber-700 transition-colors"
-            >
-              Go to Cart <ArrowRight size={15} />
+          <div className="contact-btns">
+            <Link href="/cart" className="btn-add btn-primary" style={{ width: "auto", padding: "14px 32px", textDecoration: "none" }}>
+              Go to Cart →
             </Link>
-            <a
-              href="https://wa.me/923368952826"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 justify-center px-8 py-3.5 rounded-xl text-sm font-semibold border border-stone-300 text-stone-700 hover:border-green-400 hover:text-green-700 transition-colors"
-            >
-              <MessageCircle size={15} /> Chat on WhatsApp
+            <a href="https://wa.me/923368952826" target="_blank" rel="noopener noreferrer" className="btn-wa">
+              💬 Chat on WhatsApp
             </a>
+          </div>
+          <div style={{ marginTop: "24px", fontSize: "12px", color: "#aaa" }}>
+            Questions? WhatsApp +92 336 8952826
           </div>
         </div>
       </section>
+
+      {/* Floating cart button */}
+      {count > 0 && (
+        <div className="cart-float">
+          <Link href="/cart" className="cart-float-btn">
+            🛒
+            <span className="cart-float-badge">{count}</span>
+          </Link>
+        </div>
+      )}
     </div>
   );
 }
