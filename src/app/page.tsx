@@ -4,11 +4,13 @@ import Link from "next/link";
 import { useCart } from "./CartContext";
 
 // ─── SALE CONFIG ──────────────────────────────────────────────────────────────
-const SALE_DAYS = 5;
-const SALE_RECORDED_PRICE = 7500;
-const SALE_LIVE_PRICE = 15000;
+const SALE_END_DATE = "July 31st";
+const SALE_RECORDED_PRICE = 7499;
+const SALE_LIVE_PRICE = 14999;
+const SALE_CLIENT_HUNTING_PRICE = 5999;
 const ORIGINAL_RECORDED_PRICE = 12000;
 const ORIGINAL_LIVE_PRICE = 20000;
+const ORIGINAL_CLIENT_HUNTING_PRICE = 9999;
 
 // ─── DATA ─────────────────────────────────────────────────────────────────────
 const SERVICES = [
@@ -77,6 +79,8 @@ const automationOutline = [
   { module: "Final Project", title: "Build an AI Agent Chatbot", topics: ["Generate AI Responses Automatically", "Restaurant Booking", "Save Interested Leads into Google Sheets", "Complete End-to-End Automation Workflow"] },
 ];
 
+const clientHuntingOutline: never[] = [];
+
 const COURSES = [
   {
     id: "course-automation-recorded",
@@ -126,16 +130,28 @@ const COURSES = [
     outline: voiceAgentOutline,
     courseType: "live" as const,
   },
+  {
+    id: "course-client-hunting-recorded",
+    name: "Client Hunting Masterclass",
+    format: "recorded",
+    icon: "🎯",
+    tagline: "12 proven methods to land clients",
+    duration: "1 video · ~1 hour",
+    price: SALE_CLIENT_HUNTING_PRICE,
+    originalPrice: ORIGINAL_CLIENT_HUNTING_PRICE,
+    outline: clientHuntingOutline,
+    courseType: "recorded" as const,
+  },
 ];
 
-// ─── SALE BANNER (no timer) ──────────────────────────────────────────────────
+// ─── SALE BANNER ──────────────────────────────────────────────────────────────
 function SaleBanner() {
   return (
     <div className="sale-banner">
       <div className="sale-banner-inner">
         <div className="sale-title">
           <span>🔥</span>
-          <span>SUMMER SALE — {SALE_DAYS} DAYS ONLY</span>
+          <span>SUMMER SALE — ENDS {SALE_END_DATE.toUpperCase()}</span>
         </div>
         <div className="sale-prices">
           <span className="muted">Recorded:</span>
@@ -145,6 +161,9 @@ function SaleBanner() {
           <span className="muted">Live:</span>
           <span className="gold bold">Rs. {SALE_LIVE_PRICE.toLocaleString()}</span>
           <span className="strike">Rs. {ORIGINAL_LIVE_PRICE.toLocaleString()}</span>
+          <span className="dot">·</span>
+          <span className="muted">Client Hunting:</span>
+          <span className="gold bold">Rs. {SALE_CLIENT_HUNTING_PRICE.toLocaleString()}</span>
         </div>
       </div>
     </div>
@@ -220,22 +239,24 @@ function ServiceCard({ svc }: { svc: typeof SERVICES[0] }) {
   );
 }
 
-// ─── COURSE CARD (with outline restored, 2 per row) ────────────────────────────
+// ─── COURSE CARD ─────────────────────────────────────────────────────────────
 function CourseCard({ course }: { course: typeof COURSES[0] }) {
   const { addItem, items } = useCart();
   const inCart = !!items.find(i => i.id === course.id);
   const [showOutline, setShowOutline] = useState(false);
   const isLive = course.format === "live";
+  const isClientHunting = course.id === "course-client-hunting-recorded";
   const discount = Math.round((1 - course.price / course.originalPrice) * 100);
 
   return (
-    <div className={`card course-card ${isLive ? "course-live" : ""}`}>
+    <div className={`card course-card ${isLive ? "course-live" : ""} ${isClientHunting ? "course-client-hunting" : ""}`}>
       {isLive && <div className="live-ribbon">LIVE</div>}
+      {isClientHunting && <div className="new-ribbon">NEW</div>}
 
       <div className="card-header">
-        <div className="card-icon">{course.icon}</div>
-        <span className={`badge ${isLive ? "badge-live" : "badge-recorded"}`}>
-          {isLive ? "🔴 LIVE" : "📹 RECORDED"}
+        <div className={`card-icon ${isClientHunting ? "card-icon-hunting" : ""}`}>{course.icon}</div>
+        <span className={`badge ${isLive ? "badge-live" : isClientHunting ? "badge-hunting" : "badge-recorded"}`}>
+          {isLive ? "🔴 LIVE" : isClientHunting ? "🎯 RECORDED" : "📹 RECORDED"}
         </span>
       </div>
 
@@ -263,6 +284,12 @@ function CourseCard({ course }: { course: typeof COURSES[0] }) {
             <p className="delivery-item">🔗 Google Meet link shared before class</p>
             <p className="delivery-gold">⚡ Class starts within 1–2 days of payment</p>
           </>
+        ) : isClientHunting ? (
+          <>
+            <p className="delivery-item">📹 12 client-getting methods covered</p>
+            <p className="delivery-item">🌐 Live portfolio website built in video</p>
+            <p className="delivery-gold">📨 Access sent within 3 days of payment</p>
+          </>
         ) : (
           <>
             <p className="delivery-item">📹 Lifetime access to recordings</p>
@@ -271,30 +298,34 @@ function CourseCard({ course }: { course: typeof COURSES[0] }) {
         )}
       </div>
 
-      <button
-        onClick={() => setShowOutline(p => !p)}
-        className="btn-outline-toggle"
-      >
-        📋 {showOutline ? "Hide" : "View"} Full Course Outline {showOutline ? "▲" : "▼"}
-      </button>
+      {!isClientHunting && (
+        <>
+          <button
+            onClick={() => setShowOutline(p => !p)}
+            className="btn-outline-toggle"
+          >
+            📋 {showOutline ? "Hide" : "View"} Full Course Outline {showOutline ? "▲" : "▼"}
+          </button>
 
-      {showOutline && (
-        <div className="outline-box">
-          {course.outline.map((item: any, idx: number) => (
-            <div key={idx} className="outline-item">
-              <p className="outline-header">
-                {item.class || item.module}: {item.title}
-              </p>
-              <ul className="outline-topics">
-                {item.topics.map((t: string, ti: number) => (
-                  <li key={ti} className="outline-topic">
-                    <span className="outline-arrow">›</span> {t}
-                  </li>
-                ))}
-              </ul>
+          {showOutline && (
+            <div className="outline-box">
+              {course.outline.map((item: any, idx: number) => (
+                <div key={idx} className="outline-item">
+                  <p className="outline-header">
+                    {item.class || item.module}: {item.title}
+                  </p>
+                  <ul className="outline-topics">
+                    {item.topics.map((t: string, ti: number) => (
+                      <li key={ti} className="outline-topic">
+                        <span className="outline-arrow">›</span> {t}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+          )}
+        </>
       )}
 
       <button
@@ -307,20 +338,19 @@ function CourseCard({ course }: { course: typeof COURSES[0] }) {
           description: course.tagline,
         })}
         disabled={inCart}
-        className={`btn-add ${inCart ? "btn-added" : isLive ? "btn-primary" : "btn-outline-gold"}`}
+        className={`btn-add ${inCart ? "btn-added" : isLive ? "btn-primary" : isClientHunting ? "btn-hunting" : "btn-outline-gold"}`}
       >
-        {inCart ? "✓ Enrolled" : isLive ? "Book Live Classes" : "Enroll Now"}
+        {inCart ? "✓ Enrolled" : isLive ? "Book Live Classes" : isClientHunting ? "Get the Course →" : "Enroll Now"}
       </button>
     </div>
   );
 }
 
-// ─── HOME PAGE (with useEffect for CSS to fix hydration) ──────────────────────
+// ─── HOME PAGE ──────────────────────────────────────────────────────────────
 export default function Home() {
   const { count } = useCart();
   const [isMounted, setIsMounted] = useState(false);
 
-  // Fix hydration mismatch: only load CSS after mount
   useEffect(() => {
     setIsMounted(true);
   }, []);
@@ -329,7 +359,7 @@ export default function Home() {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
-  if (!isMounted) return null; // Prevents rendering until client-side
+  if (!isMounted) return null;
 
   return (
     <div className="site-wrapper">
@@ -341,7 +371,7 @@ export default function Home() {
         ::-webkit-scrollbar-track { background: #f1f1f1; }
         ::-webkit-scrollbar-thumb { background: #c0c0c0; border-radius: 3px; }
 
-        /* ── BANNER (White Theme) ── */
+        /* ── BANNER ── */
         .sale-banner { background: linear-gradient(90deg,#fff0e0,#ffe8d4,#fff0e0); border-bottom: 1px solid #f0c48b; padding: 10px 16px; position: sticky; top: 0; z-index: 100; }
         .sale-banner-inner { display: flex; align-items: center; justify-content: center; gap: 16px; flex-wrap: wrap; }
         .sale-title { display: flex; align-items: center; gap: 8px; color: #d45113; font-weight: 700; font-size: 13px; letter-spacing: .05em; }
@@ -351,9 +381,8 @@ export default function Home() {
         .strike { color: #999; text-decoration: line-through; font-size: 11px; }
         .dot { color: #ccc; }
         .muted { color: #666; }
-        .muted-sm { color: #888; font-size: 12px; }
 
-        /* ── NAV (White Theme) ── */
+        /* ── NAV ── */
         .main-nav { background: rgba(255,255,255,.95); backdrop-filter: blur(12px); border-bottom: 1px solid #eee; padding: 0 24px; height: 60px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 41px; z-index: 99; }
         .nav-logo { background: none; border: none; cursor: pointer; color: #d45113; font-weight: 800; font-size: 18px; letter-spacing: -.02em; }
         .nav-logo-white { color: #1e1a14; }
@@ -365,7 +394,7 @@ export default function Home() {
         .nav-cart:hover { border-color: #d45113; }
         .cart-badge { position: absolute; top: -8px; right: -8px; background: #d45113; color: #fff; width: 18px; height: 18px; border-radius: 50%; font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center; }
 
-        /* ── HERO (White Theme) ── */
+        /* ── HERO ── */
         .hero { min-height: 90vh; background: #ffffff; display: flex; align-items: center; justify-content: center; padding: 80px 24px; position: relative; overflow: hidden; }
         .hero-grid { position: absolute; inset: 0; pointer-events: none; background-image: linear-gradient(rgba(212,81,19,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(212,81,19,.04) 1px,transparent 1px); background-size: 60px 60px; }
         .hero-glow { position: absolute; top: 20%; left: 50%; transform: translateX(-50%); width: 600px; height: 300px; background: radial-gradient(ellipse,rgba(212,81,19,.06) 0%,transparent 70%); pointer-events: none; }
@@ -386,53 +415,57 @@ export default function Home() {
         .hero-stat-val { color: #d45113; font-size: 28px; font-weight: 800; }
         .hero-stat-label { color: #999; font-size: 12px; margin-top: 4px; letter-spacing: .05em; }
 
-        /* ── SALE SPOTLIGHT (White Theme) ── */
+        /* ── SALE SPOTLIGHT ── */
         .sale-spotlight { background: linear-gradient(135deg,#fff8f0,#fff4ea); border-top: 1px solid #f0e0d0; border-bottom: 1px solid #f0e0d0; padding: 60px 24px; position: relative; overflow: hidden; }
         .sale-spotlight-glow { position: absolute; inset: 0; background: radial-gradient(ellipse 80% 60% at 50% 50%,rgba(212,81,19,.03) 0%,transparent 70%); pointer-events: none; }
-        .sale-spotlight-inner { max-width: 900px; margin: 0 auto; position: relative; }
+        .sale-spotlight-inner { max-width: 1000px; margin: 0 auto; position: relative; }
         .sale-badge-pill { display: inline-flex; align-items: center; gap: 8px; background: #d45113; color: #fff; border-radius: 100px; padding: 6px 20px; font-size: 12px; font-weight: 800; letter-spacing: .08em; margin-bottom: 16px; }
         .sale-h2 { color: #1e1a14; font-size: clamp(28px,5vw,40px); font-weight: 800; margin-bottom: 8px; letter-spacing: -.02em; }
         .sale-sub { color: #666; font-size: 15px; margin-bottom: 36px; }
-        .sale-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(200px,1fr)); gap: 16px; margin-bottom: 32px; }
+        .sale-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); gap: 16px; margin-bottom: 32px; }
         .sale-box { background: #fff; border: 1px solid rgba(212,81,19,.2); border-radius: 16px; padding: 28px 24px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,.02); transition: transform .2s, box-shadow .2s; }
         .sale-box:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(0,0,0,.05); }
         .sale-box-pct { display: inline-block; background: rgba(212,81,19,.1); color: #d45113; border-radius: 8px; padding: 3px 10px; font-size: 11px; font-weight: 700; letter-spacing: .06em; margin-bottom: 12px; }
         .sale-box-label { color: #1e1a14; font-size: 16px; font-weight: 700; margin-bottom: 4px; }
-        .sale-box-price { color: #d45113; font-size: 36px; font-weight: 900; line-height: 1.1; margin-bottom: 4px; }
+        .sale-box-price { color: #d45113; font-size: 32px; font-weight: 900; line-height: 1.1; margin-bottom: 4px; }
         .sale-box-orig { color: #aaa; font-size: 14px; text-decoration: line-through; margin-bottom: 8px; }
         .sale-box-detail { color: #888; font-size: 12px; }
 
-        /* ── SECTION (White Theme) ── */
+        /* ── SECTIONS ── */
         .section-dark { background: #fefcf8; padding: 80px 24px; }
         .section-darker { background: #ffffff; padding: 80px 24px; }
         .section-inner { max-width: 1100px; margin: 0 auto; }
-        .section-inner-lg { max-width: 1000px; margin: 0 auto; }
+        .section-inner-lg { max-width: 1100px; margin: 0 auto; }
         .section-header { text-align: center; margin-bottom: 48px; }
         .section-eyebrow { color: #d45113; font-size: 12px; font-weight: 700; letter-spacing: .1em; margin-bottom: 12px; }
         .section-h2 { color: #1e1a14; font-size: clamp(28px,5vw,44px); font-weight: 800; letter-spacing: -.02em; }
         .section-h2 span { color: #d45113; }
         .section-desc { color: #666; margin-top: 12px; max-width: 480px; margin-left: auto; margin-right: auto; font-size: 14px; line-height: 1.7; }
         .courses-sale-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(212,81,19,.06); border: 1px solid rgba(212,81,19,.2); border-radius: 12px; padding: 10px 20px; margin-top: 20px; flex-wrap: wrap; justify-content: center; }
-        .courses-sale-badge span:first-child { font-size: 14px; }
 
-        /* ── CARDS GRID (2 courses per row) ── */
+        /* ── CARDS GRIDS ── */
         .cards-grid-3 { display: grid; grid-template-columns: repeat(auto-fit,minmax(280px,1fr)); gap: 20px; }
         .cards-grid-courses { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
         @media (max-width: 768px) { .cards-grid-courses { grid-template-columns: 1fr; } }
 
-        /* ── CARD (White Theme) ── */
+        /* ── CARD ── */
         .card { background: #ffffff; border: 1px solid #eee; border-radius: 20px; padding: 28px; display: flex; flex-direction: column; gap: 16px; transition: box-shadow .3s, border-color .3s; position: relative; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,.02); }
         .card:hover { border-color: #d45113; box-shadow: 0 12px 24px rgba(0,0,0,.04); }
         .service-card { padding: 32px; gap: 20px; }
         .course-card { padding: 28px; }
         .course-live { border-color: rgba(212,81,19,.2); }
+        .course-client-hunting { border-color: rgba(99,102,241,.2); background: linear-gradient(135deg,#ffffff,#faf9ff); }
+        .course-client-hunting:hover { border-color: #6366f1; box-shadow: 0 12px 24px rgba(99,102,241,.08); }
         .live-ribbon { position: absolute; top: 16px; right: -28px; background: #d45113; color: #fff; font-size: 10px; font-weight: 800; letter-spacing: .08em; padding: 4px 40px; transform: rotate(35deg); }
+        .new-ribbon { position: absolute; top: 16px; right: -28px; background: #6366f1; color: #fff; font-size: 10px; font-weight: 800; letter-spacing: .08em; padding: 4px 40px; transform: rotate(35deg); }
         .card-header { display: flex; align-items: flex-start; justify-content: space-between; padding-right: 20px; }
         .card-icon { width: 48px; height: 48px; border-radius: 14px; background: rgba(212,81,19,.08); border: 1px solid rgba(212,81,19,.15); display: flex; align-items: center; justify-content: center; font-size: 22px; }
+        .card-icon-hunting { background: rgba(99,102,241,.08); border-color: rgba(99,102,241,.2); }
         .badge { font-size: 11px; font-weight: 700; letter-spacing: .08em; border-radius: 100px; padding: 4px 12px; }
         .badge-gold { color: #d45113; background: rgba(212,81,19,.08); border: 1px solid rgba(212,81,19,.2); }
         .badge-live { color: #d45113; background: rgba(212,81,19,.1); border: 1px solid rgba(212,81,19,.3); }
         .badge-recorded { color: #888; background: #f5f5f5; border: 1px solid #e0e0e0; }
+        .badge-hunting { color: #6366f1; background: rgba(99,102,241,.08); border: 1px solid rgba(99,102,241,.2); }
         .card-title { color: #1e1a14; font-size: 18px; font-weight: 700; margin-bottom: 6px; }
         .card-tagline { color: #888; font-size: 14px; }
         .duration-text { color: #d45113; font-size: 12px; font-family: monospace; margin-top: 6px; }
@@ -460,13 +493,15 @@ export default function Home() {
         .btn-primary:hover:not(:disabled) { opacity: .85; }
         .btn-outline-gold { background: transparent; color: #d45113; border: 1px solid rgba(212,81,19,.4); }
         .btn-outline-gold:hover:not(:disabled) { background: rgba(212,81,19,.05); border-color: #d45113; }
+        .btn-hunting { background: #6366f1; color: #fff; border: none; }
+        .btn-hunting:hover:not(:disabled) { opacity: .85; }
         .btn-added { background: #f5f5f5; color: #aaa; border: 1px solid #e0e0e0; }
         .btn-outline-toggle { background: transparent; border: 1px solid #e0e0e0; border-radius: 10px; padding: 10px; cursor: pointer; color: #888; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 6px; transition: border-color .2s,color .2s; width: 100%; margin-top: 8px; }
         .btn-outline-toggle:hover { border-color: #d45113; color: #d45113; }
         .btn-cta-primary { background: #d45113; color: #fff; border: none; border-radius: 12px; padding: 14px 36px; font-size: 15px; font-weight: 700; cursor: pointer; transition: opacity .2s; }
         .btn-cta-primary:hover { opacity: .85; }
 
-        /* ── OUTLINE (White Theme) ── */
+        /* ── OUTLINE ── */
         .outline-box { max-height: 320px; overflow-y: auto; border: 1px solid #f0f0f0; border-radius: 12px; padding: 16px; background: #fefcf8; margin-top: 8px; }
         .outline-item { border-left: 2px solid rgba(212,81,19,.3); padding-left: 14px; margin-bottom: 16px; }
         .outline-header { color: #d45113; font-size: 12px; font-weight: 700; margin-bottom: 6px; }
@@ -474,7 +509,7 @@ export default function Home() {
         .outline-topic { color: #888; font-size: 12px; display: flex; gap: 6px; }
         .outline-arrow { color: #d0c0b0; flex-shrink: 0; }
 
-        /* ── PRICING (White Theme) ── */
+        /* ── PRICING TABLE ── */
         .pricing-table-wrap { background: #fff; border: 1px solid #eee; border-radius: 20px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,.02); }
         .pricing-table { width: 100%; border-collapse: collapse; }
         .pricing-table thead { background: #fefcf8; border-bottom: 1px solid #f0f0f0; }
@@ -488,11 +523,12 @@ export default function Home() {
         .type-service { font-size: 10px; font-weight: 700; letter-spacing: .06em; padding: 2px 8px; border-radius: 100px; background: rgba(212,81,19,.08); color: #d45113; border: 1px solid rgba(212,81,19,.2); white-space: nowrap; }
         .type-live { font-size: 10px; font-weight: 700; letter-spacing: .06em; padding: 2px 8px; border-radius: 100px; background: rgba(100,200,100,.08); color: #2c8f5c; border: 1px solid rgba(100,200,100,.2); white-space: nowrap; }
         .type-recorded { font-size: 10px; font-weight: 700; letter-spacing: .06em; padding: 2px 8px; border-radius: 100px; background: #f5f5f5; color: #888; border: 1px solid #e0e0e0; white-space: nowrap; }
+        .type-new { font-size: 10px; font-weight: 700; letter-spacing: .06em; padding: 2px 8px; border-radius: 100px; background: rgba(99,102,241,.08); color: #6366f1; border: 1px solid rgba(99,102,241,.2); white-space: nowrap; }
         .pricing-price { color: #d45113; font-weight: 700; font-size: 15px; text-align: right; }
         .pricing-orig { color: #bbb; font-size: 12px; text-decoration: line-through; }
         .pricing-note { margin-top: 16px; padding: 16px 20px; background: rgba(212,81,19,.03); border: 1px solid rgba(212,81,19,.1); border-radius: 14px; color: #888; font-size: 12px; line-height: 1.7; }
 
-        /* ── WHY ME (White Theme) ── */
+        /* ── WHY ME ── */
         .whyme-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(280px,1fr)); gap: 48px; align-items: center; }
         .whyme-eyebrow { color: #d45113; font-size: 12px; font-weight: 700; letter-spacing: .1em; margin-bottom: 12px; }
         .whyme-h2 { color: #1e1a14; font-size: clamp(28px,4vw,36px); font-weight: 800; margin-bottom: 20px; letter-spacing: -.02em; }
@@ -508,7 +544,7 @@ export default function Home() {
         .stat-label { color: #1e1a14; font-size: 13px; font-weight: 600; }
         .stat-desc { color: #aaa; font-size: 11px; margin-top: 4px; }
 
-        /* ── CONTACT (White Theme) ── */
+        /* ── CONTACT ── */
         .contact-section { background: #fefcf8; border-top: 1px solid #f0e0d0; padding: 80px 24px; }
         .contact-inner { max-width: 600px; margin: 0 auto; text-align: center; }
         .contact-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 24px; }
@@ -525,14 +561,14 @@ export default function Home() {
       <SaleBanner />
       <Nav />
 
-      {/* HERO with Summer Sale Highlight */}
+      {/* HERO */}
       <section className="hero">
         <div className="hero-grid" />
         <div className="hero-glow" />
         <div className="hero-content">
           <div className="hero-pill">
             <span className="hero-pill-dot" />
-            <span className="hero-pill-text">🔥 SUMMER SALE — 5 DAYS LEFT! UP TO 37% OFF ON COURSES</span>
+            <span className="hero-pill-text">🔥 SUMMER SALE — ENDS JULY 31ST! UP TO 40% OFF</span>
           </div>
           <h1 className="hero-h1">
             Ahmed <span className="hero-outline">Memon</span>
@@ -550,7 +586,7 @@ export default function Home() {
             </button>
           </div>
           <div className="hero-stats">
-            {[["100%", "Satisfaction"], ["37%", "Off on Courses"]].map(([v, l]) => (
+            {[["100%", "Satisfaction"], ["40%", "Off on Courses"]].map(([v, l]) => (
               <div key={l} style={{ textAlign: "center" }}>
                 <div className="hero-stat-val">{v}</div>
                 <div className="hero-stat-label">{l}</div>
@@ -565,16 +601,17 @@ export default function Home() {
         <div className="sale-spotlight-glow" />
         <div className="sale-spotlight-inner">
           <div style={{ textAlign: "center" }}>
-            <div className="sale-badge-pill">🔥 LIMITED TIME — SUMMER SALE</div>
+            <div className="sale-badge-pill">🔥 SUMMER SALE — ENDS JULY 31ST</div>
             <h2 className="sale-h2">
               Courses at <span style={{ color: "#d45113" }}>Unbeatable Prices</span>
             </h2>
-            <p className="sale-sub">Only for {SALE_DAYS} days. Enroll before time runs out.</p>
+            <p className="sale-sub">Sale ends {SALE_END_DATE}. Enroll before time runs out.</p>
           </div>
           <div className="sale-grid">
             {[
               { label: "Recorded Course", salePrice: SALE_RECORDED_PRICE, origPrice: ORIGINAL_RECORDED_PRICE, detail: "6 classes · lifetime access" },
               { label: "Live Course", salePrice: SALE_LIVE_PRICE, origPrice: ORIGINAL_LIVE_PRICE, detail: "2 live sessions · Google Meet" },
+              { label: "Client Hunting", salePrice: SALE_CLIENT_HUNTING_PRICE, origPrice: ORIGINAL_CLIENT_HUNTING_PRICE, detail: "~1 hr video · 12 methods" },
             ].map(item => (
               <div key={item.label} className="sale-box">
                 <div className="sale-box-pct">{Math.round((1 - item.salePrice / item.origPrice) * 100)}% OFF</div>
@@ -607,20 +644,17 @@ export default function Home() {
         </div>
       </section>
 
-      {/* COURSES - 2 per row with restored details */}
+      {/* COURSES */}
       <section id="courses" className="section-darker">
         <div className="section-inner-lg">
           <div className="section-header">
             <p className="section-eyebrow">LEARN FROM ME</p>
             <h2 className="section-h2">Expert-Led <span>Courses</span></h2>
-            <p className="section-desc">Choose your learning style — self-paced recorded videos or interactive live sessions on Google Meet.</p>
+            <p className="section-desc">Self-paced recordings, live sessions, or learn how to land your first client — choose what fits you.</p>
             <div className="courses-sale-badge">
               <span>🔥</span>
               <span style={{ color: "#d45113", fontWeight: 700, fontSize: "14px" }}>
-                Summer Sale: Recorded Rs. {SALE_RECORDED_PRICE.toLocaleString()} · Live Rs. {SALE_LIVE_PRICE.toLocaleString()}
-              </span>
-              <span style={{ color: "#aaa", fontSize: "12px" }}>
-                (was Rs. {ORIGINAL_RECORDED_PRICE.toLocaleString()} / Rs. {ORIGINAL_LIVE_PRICE.toLocaleString()})
+                Summer Sale ends {SALE_END_DATE} · Recorded Rs. {SALE_RECORDED_PRICE.toLocaleString()} · Live Rs. {SALE_LIVE_PRICE.toLocaleString()} · Client Hunting Rs. {SALE_CLIENT_HUNTING_PRICE.toLocaleString()}
               </span>
             </div>
           </div>
@@ -651,26 +685,27 @@ export default function Home() {
                     { name: "AI Automation (n8n only)", price: "30,000", type: "Service" },
                     { name: "AI Call / Voice Agent", price: "50,000", type: "Service" },
                     { name: "Complete Website", price: "20,000", type: "Service" },
-                    { name: "AI Automation Mastery — Recorded", price: `${SALE_RECORDED_PRICE.toLocaleString()} 🔥`, origPrice: "12,000", type: "Recorded" },
-                    { name: "AI Automation Mastery — Live", price: `${SALE_LIVE_PRICE.toLocaleString()} 🔥`, origPrice: "20,000", type: "Live" },
-                    { name: "AI Voice Agent Course — Recorded", price: `${SALE_RECORDED_PRICE.toLocaleString()} 🔥`, origPrice: "12,000", type: "Recorded" },
-                    { name: "AI Voice Agent Course — Live", price: `${SALE_LIVE_PRICE.toLocaleString()} 🔥`, origPrice: "20,000", type: "Live" },
+                    { name: "AI Automation Mastery — Recorded", price: `${SALE_RECORDED_PRICE.toLocaleString()} 🔥`, origPrice: ORIGINAL_RECORDED_PRICE.toLocaleString(), type: "Recorded" },
+                    { name: "AI Automation Mastery — Live", price: `${SALE_LIVE_PRICE.toLocaleString()} 🔥`, origPrice: ORIGINAL_LIVE_PRICE.toLocaleString(), type: "Live" },
+                    { name: "AI Voice Agent Course — Recorded", price: `${SALE_RECORDED_PRICE.toLocaleString()} 🔥`, origPrice: ORIGINAL_RECORDED_PRICE.toLocaleString(), type: "Recorded" },
+                    { name: "AI Voice Agent Course — Live", price: `${SALE_LIVE_PRICE.toLocaleString()} 🔥`, origPrice: ORIGINAL_LIVE_PRICE.toLocaleString(), type: "Live" },
+                    { name: "Client Hunting Masterclass — Recorded", price: `${SALE_CLIENT_HUNTING_PRICE.toLocaleString()} 🔥`, origPrice: ORIGINAL_CLIENT_HUNTING_PRICE.toLocaleString(), type: "New" },
                   ].map((row, i) => (
                     <tr key={i}>
                       <td>
                         <div className="pricing-td-inner">
                           <span className="pricing-name">{row.name}</span>
-                          <span className={row.type === "Service" ? "type-service" : row.type === "Live" ? "type-live" : "type-recorded"}>
+                          <span className={row.type === "Service" ? "type-service" : row.type === "Live" ? "type-live" : row.type === "New" ? "type-new" : "type-recorded"}>
                             {row.type}
                           </span>
                         </div>
-                        </td>
-                        <td>
+                      </td>
+                      <td>
                         <div style={{ textAlign: "right" }}>
                           <div className="pricing-price">Rs. {row.price}</div>
                           {row.origPrice && <div className="pricing-orig">Rs. {row.origPrice}</div>}
                         </div>
-                        </td>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
