@@ -6,11 +6,7 @@ import { useCart } from "./CartContext";
 // ─── SALE CONFIG ──────────────────────────────────────────────────────────────
 const SALE_END_DATE = "July 31st";
 const SALE_RECORDED_PRICE = 7499;
-const SALE_LIVE_PRICE = 14999;
-const SALE_CLIENT_HUNTING_PRICE = 5999;
 const ORIGINAL_RECORDED_PRICE = 12000;
-const ORIGINAL_LIVE_PRICE = 20000;
-const ORIGINAL_CLIENT_HUNTING_PRICE = 9999;
 
 // ─── DATA ─────────────────────────────────────────────────────────────────────
 const SERVICES = [
@@ -28,21 +24,6 @@ const SERVICES = [
       "Ongoing support & documentation",
     ],
     note: "n8n platform account and its associated costs will be provided by the client. Ahmed will build the workflows only.",
-  },
-  {
-    id: "ai-call-agent",
-    name: "AI Call Agent",
-    price: 50000,
-    tagline: "Any type of AI voice/call agent",
-    icon: "🎙️",
-    features: [
-      "Full AI call agent setup",
-      "Custom voice & persona design",
-      "CRM & booking integration",
-      "Call flow scripting & testing",
-      "Agent training",
-    ],
-    note: "All platform accounts (VAPI, Retell, Telnyx, Twilio, etc.) and costs will be provided/borne by the client.",
   },
   {
     id: "website",
@@ -79,8 +60,6 @@ const automationOutline = [
   { module: "Final Project", title: "Build an AI Agent Chatbot", topics: ["Generate AI Responses Automatically", "Restaurant Booking", "Save Interested Leads into Google Sheets", "Complete End-to-End Automation Workflow"] },
 ];
 
-const clientHuntingOutline: never[] = [];
-
 const COURSES = [
   {
     id: "course-automation-recorded",
@@ -95,18 +74,6 @@ const COURSES = [
     courseType: "recorded" as const,
   },
   {
-    id: "course-automation-live",
-    name: "AI Automation Mastery",
-    format: "live",
-    icon: "⚡",
-    tagline: "Live sessions on Google Meet",
-    duration: "2 classes · ~45 min each",
-    price: SALE_LIVE_PRICE,
-    originalPrice: ORIGINAL_LIVE_PRICE,
-    outline: automationOutline,
-    courseType: "live" as const,
-  },
-  {
     id: "course-voice-agent-recorded",
     name: "AI Voice Agent Course",
     format: "recorded",
@@ -116,30 +83,6 @@ const COURSES = [
     price: SALE_RECORDED_PRICE,
     originalPrice: ORIGINAL_RECORDED_PRICE,
     outline: voiceAgentOutline,
-    courseType: "recorded" as const,
-  },
-  {
-    id: "course-voice-agent-live",
-    name: "AI Voice Agent Course",
-    format: "live",
-    icon: "🎙️",
-    tagline: "Live sessions on Google Meet",
-    duration: "2 classes · ~45 min each",
-    price: SALE_LIVE_PRICE,
-    originalPrice: ORIGINAL_LIVE_PRICE,
-    outline: voiceAgentOutline,
-    courseType: "live" as const,
-  },
-  {
-    id: "course-client-hunting-recorded",
-    name: "Client Hunting Masterclass",
-    format: "recorded",
-    icon: "🎯",
-    tagline: "12 proven methods to land clients",
-    duration: "1 video · ~1 hour",
-    price: SALE_CLIENT_HUNTING_PRICE,
-    originalPrice: ORIGINAL_CLIENT_HUNTING_PRICE,
-    outline: clientHuntingOutline,
     courseType: "recorded" as const,
   },
 ];
@@ -157,13 +100,6 @@ function SaleBanner() {
           <span className="muted">Recorded:</span>
           <span className="gold bold">Rs. {SALE_RECORDED_PRICE.toLocaleString()}</span>
           <span className="strike">Rs. {ORIGINAL_RECORDED_PRICE.toLocaleString()}</span>
-          <span className="dot">·</span>
-          <span className="muted">Live:</span>
-          <span className="gold bold">Rs. {SALE_LIVE_PRICE.toLocaleString()}</span>
-          <span className="strike">Rs. {ORIGINAL_LIVE_PRICE.toLocaleString()}</span>
-          <span className="dot">·</span>
-          <span className="muted">Client Hunting:</span>
-          <span className="gold bold">Rs. {SALE_CLIENT_HUNTING_PRICE.toLocaleString()}</span>
         </div>
       </div>
     </div>
@@ -244,20 +180,13 @@ function CourseCard({ course }: { course: typeof COURSES[0] }) {
   const { addItem, items } = useCart();
   const inCart = !!items.find(i => i.id === course.id);
   const [showOutline, setShowOutline] = useState(false);
-  const isLive = course.format === "live";
-  const isClientHunting = course.id === "course-client-hunting-recorded";
   const discount = Math.round((1 - course.price / course.originalPrice) * 100);
 
   return (
-    <div className={`card course-card ${isLive ? "course-live" : ""} ${isClientHunting ? "course-client-hunting" : ""}`}>
-      {isLive && <div className="live-ribbon">LIVE</div>}
-      {isClientHunting && <div className="new-ribbon">NEW</div>}
-
+    <div className="card course-card">
       <div className="card-header">
-        <div className={`card-icon ${isClientHunting ? "card-icon-hunting" : ""}`}>{course.icon}</div>
-        <span className={`badge ${isLive ? "badge-live" : isClientHunting ? "badge-hunting" : "badge-recorded"}`}>
-          {isLive ? "🔴 LIVE" : isClientHunting ? "🎯 RECORDED" : "📹 RECORDED"}
-        </span>
+        <div className="card-icon">{course.icon}</div>
+        <span className="badge badge-recorded">📹 RECORDED</span>
       </div>
 
       <div>
@@ -272,75 +201,63 @@ function CourseCard({ course }: { course: typeof COURSES[0] }) {
             <span className="price">Rs. {course.price.toLocaleString()}</span>
             <span className="price-original">Rs. {course.originalPrice.toLocaleString()}</span>
           </div>
-          <p className="price-unit">{isLive ? "2 live classes" : "lifetime access"}</p>
+          <p className="price-unit">lifetime access</p>
         </div>
         <span className="discount-badge">{discount}% OFF</span>
       </div>
 
       <div className="delivery-box">
-        {isLive ? (
-          <>
-            <p className="delivery-item">✅ Interactive Q&A each session</p>
-            <p className="delivery-item">🔗 Google Meet link shared before class</p>
-            <p className="delivery-gold">⚡ Class starts within 1–2 days of payment</p>
-          </>
-        ) : isClientHunting ? (
-          <>
-            <p className="delivery-item">📹 12 client-getting methods covered</p>
-            <p className="delivery-item">🌐 Live portfolio website built in video</p>
-            <p className="delivery-gold">📨 Access sent within 3 days of payment</p>
-          </>
-        ) : (
-          <>
-            <p className="delivery-item">📹 Lifetime access to recordings</p>
-            <p className="delivery-gold">📨 Access sent within 3 days of payment</p>
-          </>
-        )}
+        <p className="delivery-item">📹 Lifetime access to recordings</p>
+        <p className="delivery-gold">📨 Access sent within 3 days of payment</p>
       </div>
 
-      {!isClientHunting && (
-        <>
-          <button
-            onClick={() => setShowOutline(p => !p)}
-            className="btn-outline-toggle"
-          >
-            📋 {showOutline ? "Hide" : "View"} Full Course Outline {showOutline ? "▲" : "▼"}
-          </button>
+      {/* Refund Policy */}
+      <div className="refund-box">
+        <p className="refund-title">⚠️ No Refund Policy</p>
+        <p className="refund-text">
+          Course purchase karne ke baad koi refund nahi milega. Please carefully review the course outline before enrolling.
+        </p>
+      </div>
 
-          {showOutline && (
-            <div className="outline-box">
-              {course.outline.map((item: any, idx: number) => (
-                <div key={idx} className="outline-item">
-                  <p className="outline-header">
-                    {item.class || item.module}: {item.title}
-                  </p>
-                  <ul className="outline-topics">
-                    {item.topics.map((t: string, ti: number) => (
-                      <li key={ti} className="outline-topic">
-                        <span className="outline-arrow">›</span> {t}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
+      <button
+        onClick={() => setShowOutline(p => !p)}
+        className="btn-outline-toggle"
+      >
+        📋 {showOutline ? "Hide" : "View"} Full Course Outline {showOutline ? "▲" : "▼"}
+      </button>
+
+      {showOutline && (
+        <div className="outline-box">
+          {course.outline.map((item: any, idx: number) => (
+            <div key={idx} className="outline-item">
+              <p className="outline-header">
+                {item.class || item.module}: {item.title}
+              </p>
+              <ul className="outline-topics">
+                {item.topics.map((t: string, ti: number) => (
+                  <li key={ti} className="outline-topic">
+                    <span className="outline-arrow">›</span> {t}
+                  </li>
+                ))}
+              </ul>
             </div>
-          )}
-        </>
+          ))}
+        </div>
       )}
 
       <button
         onClick={() => addItem({
           id: course.id,
-          name: `${course.name} (${isLive ? "Live" : "Recorded"})`,
+          name: `${course.name} (Recorded)`,
           price: course.price,
           type: "course",
           courseType: course.courseType,
           description: course.tagline,
         })}
         disabled={inCart}
-        className={`btn-add ${inCart ? "btn-added" : isLive ? "btn-primary" : isClientHunting ? "btn-hunting" : "btn-outline-gold"}`}
+        className={`btn-add ${inCart ? "btn-added" : "btn-outline-gold"}`}
       >
-        {inCart ? "✓ Enrolled" : isLive ? "Book Live Classes" : isClientHunting ? "Get the Course →" : "Enroll Now"}
+        {inCart ? "✓ Enrolled" : "Enroll Now"}
       </button>
     </div>
   );
@@ -418,11 +335,11 @@ export default function Home() {
         /* ── SALE SPOTLIGHT ── */
         .sale-spotlight { background: linear-gradient(135deg,#fff8f0,#fff4ea); border-top: 1px solid #f0e0d0; border-bottom: 1px solid #f0e0d0; padding: 60px 24px; position: relative; overflow: hidden; }
         .sale-spotlight-glow { position: absolute; inset: 0; background: radial-gradient(ellipse 80% 60% at 50% 50%,rgba(212,81,19,.03) 0%,transparent 70%); pointer-events: none; }
-        .sale-spotlight-inner { max-width: 1000px; margin: 0 auto; position: relative; }
+        .sale-spotlight-inner { max-width: 800px; margin: 0 auto; position: relative; }
         .sale-badge-pill { display: inline-flex; align-items: center; gap: 8px; background: #d45113; color: #fff; border-radius: 100px; padding: 6px 20px; font-size: 12px; font-weight: 800; letter-spacing: .08em; margin-bottom: 16px; }
         .sale-h2 { color: #1e1a14; font-size: clamp(28px,5vw,40px); font-weight: 800; margin-bottom: 8px; letter-spacing: -.02em; }
         .sale-sub { color: #666; font-size: 15px; margin-bottom: 36px; }
-        .sale-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); gap: 16px; margin-bottom: 32px; }
+        .sale-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap: 16px; margin-bottom: 32px; }
         .sale-box { background: #fff; border: 1px solid rgba(212,81,19,.2); border-radius: 16px; padding: 28px 24px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,.02); transition: transform .2s, box-shadow .2s; }
         .sale-box:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(0,0,0,.05); }
         .sale-box-pct { display: inline-block; background: rgba(212,81,19,.1); color: #d45113; border-radius: 8px; padding: 3px 10px; font-size: 11px; font-weight: 700; letter-spacing: .06em; margin-bottom: 12px; }
@@ -435,7 +352,7 @@ export default function Home() {
         .section-dark { background: #fefcf8; padding: 80px 24px; }
         .section-darker { background: #ffffff; padding: 80px 24px; }
         .section-inner { max-width: 1100px; margin: 0 auto; }
-        .section-inner-lg { max-width: 1100px; margin: 0 auto; }
+        .section-inner-lg { max-width: 900px; margin: 0 auto; }
         .section-header { text-align: center; margin-bottom: 48px; }
         .section-eyebrow { color: #d45113; font-size: 12px; font-weight: 700; letter-spacing: .1em; margin-bottom: 12px; }
         .section-h2 { color: #1e1a14; font-size: clamp(28px,5vw,44px); font-weight: 800; letter-spacing: -.02em; }
@@ -444,7 +361,7 @@ export default function Home() {
         .courses-sale-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(212,81,19,.06); border: 1px solid rgba(212,81,19,.2); border-radius: 12px; padding: 10px 20px; margin-top: 20px; flex-wrap: wrap; justify-content: center; }
 
         /* ── CARDS GRIDS ── */
-        .cards-grid-3 { display: grid; grid-template-columns: repeat(auto-fit,minmax(280px,1fr)); gap: 20px; }
+        .cards-grid-2 { display: grid; grid-template-columns: repeat(auto-fit,minmax(280px,1fr)); gap: 20px; }
         .cards-grid-courses { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
         @media (max-width: 768px) { .cards-grid-courses { grid-template-columns: 1fr; } }
 
@@ -453,19 +370,11 @@ export default function Home() {
         .card:hover { border-color: #d45113; box-shadow: 0 12px 24px rgba(0,0,0,.04); }
         .service-card { padding: 32px; gap: 20px; }
         .course-card { padding: 28px; }
-        .course-live { border-color: rgba(212,81,19,.2); }
-        .course-client-hunting { border-color: rgba(99,102,241,.2); background: linear-gradient(135deg,#ffffff,#faf9ff); }
-        .course-client-hunting:hover { border-color: #6366f1; box-shadow: 0 12px 24px rgba(99,102,241,.08); }
-        .live-ribbon { position: absolute; top: 16px; right: -28px; background: #d45113; color: #fff; font-size: 10px; font-weight: 800; letter-spacing: .08em; padding: 4px 40px; transform: rotate(35deg); }
-        .new-ribbon { position: absolute; top: 16px; right: -28px; background: #6366f1; color: #fff; font-size: 10px; font-weight: 800; letter-spacing: .08em; padding: 4px 40px; transform: rotate(35deg); }
         .card-header { display: flex; align-items: flex-start; justify-content: space-between; padding-right: 20px; }
         .card-icon { width: 48px; height: 48px; border-radius: 14px; background: rgba(212,81,19,.08); border: 1px solid rgba(212,81,19,.15); display: flex; align-items: center; justify-content: center; font-size: 22px; }
-        .card-icon-hunting { background: rgba(99,102,241,.08); border-color: rgba(99,102,241,.2); }
         .badge { font-size: 11px; font-weight: 700; letter-spacing: .08em; border-radius: 100px; padding: 4px 12px; }
         .badge-gold { color: #d45113; background: rgba(212,81,19,.08); border: 1px solid rgba(212,81,19,.2); }
-        .badge-live { color: #d45113; background: rgba(212,81,19,.1); border: 1px solid rgba(212,81,19,.3); }
         .badge-recorded { color: #888; background: #f5f5f5; border: 1px solid #e0e0e0; }
-        .badge-hunting { color: #6366f1; background: rgba(99,102,241,.08); border: 1px solid rgba(99,102,241,.2); }
         .card-title { color: #1e1a14; font-size: 18px; font-weight: 700; margin-bottom: 6px; }
         .card-tagline { color: #888; font-size: 14px; }
         .duration-text { color: #d45113; font-size: 12px; font-family: monospace; margin-top: 6px; }
@@ -486,6 +395,11 @@ export default function Home() {
         .delivery-item { color: #777; font-size: 12px; margin-bottom: 4px; }
         .delivery-gold { color: #d45113; font-size: 12px; }
 
+        /* ── REFUND BOX ── */
+        .refund-box { background: rgba(255,80,50,.04); border: 1px solid rgba(255,80,50,.2); border-radius: 10px; padding: 12px 14px; }
+        .refund-title { color: #c0392b; font-size: 12px; font-weight: 700; margin-bottom: 4px; }
+        .refund-text { color: #888; font-size: 11px; line-height: 1.6; }
+
         /* ── BUTTONS ── */
         .btn-add { width: 100%; padding: 13px; border-radius: 12px; font-size: 14px; font-weight: 700; cursor: pointer; transition: opacity .2s; }
         .btn-add:disabled { cursor: default; }
@@ -493,8 +407,6 @@ export default function Home() {
         .btn-primary:hover:not(:disabled) { opacity: .85; }
         .btn-outline-gold { background: transparent; color: #d45113; border: 1px solid rgba(212,81,19,.4); }
         .btn-outline-gold:hover:not(:disabled) { background: rgba(212,81,19,.05); border-color: #d45113; }
-        .btn-hunting { background: #6366f1; color: #fff; border: none; }
-        .btn-hunting:hover:not(:disabled) { opacity: .85; }
         .btn-added { background: #f5f5f5; color: #aaa; border: 1px solid #e0e0e0; }
         .btn-outline-toggle { background: transparent; border: 1px solid #e0e0e0; border-radius: 10px; padding: 10px; cursor: pointer; color: #888; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 6px; transition: border-color .2s,color .2s; width: 100%; margin-top: 8px; }
         .btn-outline-toggle:hover { border-color: #d45113; color: #d45113; }
@@ -521,12 +433,11 @@ export default function Home() {
         .pricing-td-inner { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
         .pricing-name { color: #333; font-size: 14px; }
         .type-service { font-size: 10px; font-weight: 700; letter-spacing: .06em; padding: 2px 8px; border-radius: 100px; background: rgba(212,81,19,.08); color: #d45113; border: 1px solid rgba(212,81,19,.2); white-space: nowrap; }
-        .type-live { font-size: 10px; font-weight: 700; letter-spacing: .06em; padding: 2px 8px; border-radius: 100px; background: rgba(100,200,100,.08); color: #2c8f5c; border: 1px solid rgba(100,200,100,.2); white-space: nowrap; }
         .type-recorded { font-size: 10px; font-weight: 700; letter-spacing: .06em; padding: 2px 8px; border-radius: 100px; background: #f5f5f5; color: #888; border: 1px solid #e0e0e0; white-space: nowrap; }
-        .type-new { font-size: 10px; font-weight: 700; letter-spacing: .06em; padding: 2px 8px; border-radius: 100px; background: rgba(99,102,241,.08); color: #6366f1; border: 1px solid rgba(99,102,241,.2); white-space: nowrap; }
         .pricing-price { color: #d45113; font-weight: 700; font-size: 15px; text-align: right; }
         .pricing-orig { color: #bbb; font-size: 12px; text-decoration: line-through; }
         .pricing-note { margin-top: 16px; padding: 16px 20px; background: rgba(212,81,19,.03); border: 1px solid rgba(212,81,19,.1); border-radius: 14px; color: #888; font-size: 12px; line-height: 1.7; }
+        .pricing-refund-note { margin-top: 10px; padding: 14px 20px; background: rgba(255,80,50,.03); border: 1px solid rgba(255,80,50,.15); border-radius: 14px; color: #888; font-size: 12px; line-height: 1.7; }
 
         /* ── WHY ME ── */
         .whyme-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(280px,1fr)); gap: 48px; align-items: center; }
@@ -574,7 +485,7 @@ export default function Home() {
             Ahmed <span className="hero-outline">Memon</span>
           </h1>
           <p className="hero-sub">
-            AI Automations · Voice Agents · Professional Courses.{" "}
+            AI Automations · Professional Courses.{" "}
             <span className="hero-accent">Enroll now at discounted prices!</span>
           </p>
           <div className="hero-btns">
@@ -610,8 +521,6 @@ export default function Home() {
           <div className="sale-grid">
             {[
               { label: "Recorded Course", salePrice: SALE_RECORDED_PRICE, origPrice: ORIGINAL_RECORDED_PRICE, detail: "6 classes · lifetime access" },
-              { label: "Live Course", salePrice: SALE_LIVE_PRICE, origPrice: ORIGINAL_LIVE_PRICE, detail: "2 live sessions · Google Meet" },
-              { label: "Client Hunting", salePrice: SALE_CLIENT_HUNTING_PRICE, origPrice: ORIGINAL_CLIENT_HUNTING_PRICE, detail: "~1 hr video · 12 methods" },
             ].map(item => (
               <div key={item.label} className="sale-box">
                 <div className="sale-box-pct">{Math.round((1 - item.salePrice / item.origPrice) * 100)}% OFF</div>
@@ -638,7 +547,7 @@ export default function Home() {
             <h2 className="section-h2">Premium <span>Services</span></h2>
             <p className="section-desc">End-to-end AI solutions crafted with precision. You bring the vision — I build the intelligence.</p>
           </div>
-          <div className="cards-grid-3">
+          <div className="cards-grid-2">
             {SERVICES.map(svc => <ServiceCard key={svc.id} svc={svc} />)}
           </div>
         </div>
@@ -650,11 +559,11 @@ export default function Home() {
           <div className="section-header">
             <p className="section-eyebrow">LEARN FROM ME</p>
             <h2 className="section-h2">Expert-Led <span>Courses</span></h2>
-            <p className="section-desc">Self-paced recordings, live sessions, or learn how to land your first client — choose what fits you.</p>
+            <p className="section-desc">Self-paced recordings with lifetime access — learn at your own speed.</p>
             <div className="courses-sale-badge">
               <span>🔥</span>
               <span style={{ color: "#d45113", fontWeight: 700, fontSize: "14px" }}>
-                Summer Sale ends {SALE_END_DATE} · Recorded Rs. {SALE_RECORDED_PRICE.toLocaleString()} · Live Rs. {SALE_LIVE_PRICE.toLocaleString()} · Client Hunting Rs. {SALE_CLIENT_HUNTING_PRICE.toLocaleString()}
+                Summer Sale ends {SALE_END_DATE} · Recorded Rs. {SALE_RECORDED_PRICE.toLocaleString()}
               </span>
             </div>
           </div>
@@ -683,19 +592,15 @@ export default function Home() {
                 <tbody>
                   {[
                     { name: "AI Automation (n8n only)", price: "30,000", type: "Service" },
-                    { name: "AI Call / Voice Agent", price: "50,000", type: "Service" },
                     { name: "Complete Website", price: "20,000", type: "Service" },
                     { name: "AI Automation Mastery — Recorded", price: `${SALE_RECORDED_PRICE.toLocaleString()} 🔥`, origPrice: ORIGINAL_RECORDED_PRICE.toLocaleString(), type: "Recorded" },
-                    { name: "AI Automation Mastery — Live", price: `${SALE_LIVE_PRICE.toLocaleString()} 🔥`, origPrice: ORIGINAL_LIVE_PRICE.toLocaleString(), type: "Live" },
                     { name: "AI Voice Agent Course — Recorded", price: `${SALE_RECORDED_PRICE.toLocaleString()} 🔥`, origPrice: ORIGINAL_RECORDED_PRICE.toLocaleString(), type: "Recorded" },
-                    { name: "AI Voice Agent Course — Live", price: `${SALE_LIVE_PRICE.toLocaleString()} 🔥`, origPrice: ORIGINAL_LIVE_PRICE.toLocaleString(), type: "Live" },
-                    { name: "Client Hunting Masterclass — Recorded", price: `${SALE_CLIENT_HUNTING_PRICE.toLocaleString()} 🔥`, origPrice: ORIGINAL_CLIENT_HUNTING_PRICE.toLocaleString(), type: "New" },
                   ].map((row, i) => (
                     <tr key={i}>
                       <td>
                         <div className="pricing-td-inner">
                           <span className="pricing-name">{row.name}</span>
-                          <span className={row.type === "Service" ? "type-service" : row.type === "Live" ? "type-live" : row.type === "New" ? "type-new" : "type-recorded"}>
+                          <span className={row.type === "Service" ? "type-service" : "type-recorded"}>
                             {row.type}
                           </span>
                         </div>
@@ -713,7 +618,10 @@ export default function Home() {
             </div>
           </div>
           <p className="pricing-note">
-            <span style={{ color: "#d45113", fontWeight: 700 }}>Note:</span> Platform accounts and associated costs (n8n, voice AI, hosting, etc.) are the responsibility of the client. Ahmed builds the workflows, agents, and websites only.
+            <span style={{ color: "#d45113", fontWeight: 700 }}>Note:</span> Platform accounts and associated costs (n8n, hosting, etc.) are the responsibility of the client. Ahmed builds the workflows and websites only.
+          </p>
+          <p className="pricing-refund-note">
+            <span style={{ color: "#c0392b", fontWeight: 700 }}>⚠️ No Refund Policy:</span> Course purchase karne ke baad koi bhi refund nahi diya jayega. Enroll karne se pehle course outline zaroor dekh lein.
           </p>
         </div>
       </section>
@@ -741,8 +649,8 @@ export default function Home() {
             <div className="stats-grid">
               {[
                 { val: "30K", label: "AI Automation", desc: "n8n workflow builds" },
-                { val: "50K", label: "AI Call Agent", desc: "Voice-ready AI systems" },
                 { val: "20K", label: "Website", desc: "Full business site" },
+                { val: "7.5K", label: "Recorded Course", desc: "Lifetime access" },
                 { val: "∞", label: "Support", desc: "Post-delivery guidance" },
               ].map(s => (
                 <div key={s.label} className="stat-card">
