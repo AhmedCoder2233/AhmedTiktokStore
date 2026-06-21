@@ -4,17 +4,14 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 
 // Sale Config (matching home page)
-const SALE_RECORDED_PRICE = 7500;
-const SALE_LIVE_PRICE = 15000;
+const SALE_RECORDED_PRICE = 7499;
 const ORIGINAL_RECORDED_PRICE = 12000;
-const ORIGINAL_LIVE_PRICE = 20000;
 
 export default function CartPage() {
   const { items, removeItem, clearCart } = useCart();
   const [copied, setCopied] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState(false);
 
-  // Fix hydration
   useEffect(() => {
     setIsMounted(true);
   }, []);
@@ -40,8 +37,7 @@ export default function CartPage() {
     if (courseItems.length > 0) {
       msg += `\n📚 *Courses (100% Upfront):*\n`;
       courseItems.forEach(i => {
-        const delivery = i.courseType === "recorded" ? "📹 Recorded — access within 3 days" : "🔴 Live — starts within 1–2 days";
-        msg += `• ${i.name} — Rs. ${i.price.toLocaleString()}\n  ${delivery}\n`;
+        msg += `• ${i.name} — Rs. ${i.price.toLocaleString()}\n  📹 Recorded — access within 3 days\n`;
       });
     }
     if (serviceItems.length > 0) {
@@ -139,6 +135,10 @@ export default function CartPage() {
         .step-num { color: #d45113; font-weight: 700; flex-shrink: 0; }
         .instructions-note { color: #aaa; font-size: 11px; margin-top: 10px; font-style: italic; }
 
+        .refund-notice { background: rgba(255,80,50,.04); border: 1px solid rgba(255,80,50,.2); border-radius: 14px; padding: 14px 18px; }
+        .refund-notice-title { color: #c0392b; font-size: 12px; font-weight: 700; margin-bottom: 4px; }
+        .refund-notice-text { color: #888; font-size: 11px; line-height: 1.6; }
+
         .btn-wa { display: flex; align-items: center; justify-content: center; gap: 10px; background: #25D366; color: #fff; border: none; border-radius: 14px; padding: 16px; font-size: 15px; font-weight: 700; text-decoration: none; cursor: pointer; transition: opacity .2s; }
         .btn-wa:hover { opacity: .85; }
         .wa-number { text-align: center; margin-top: 8px; }
@@ -158,7 +158,6 @@ export default function CartPage() {
         <Link href="/" style={{
           display: "inline-flex", alignItems: "center", gap: "6px",
           color: "#aaa", fontSize: "14px", textDecoration: "none", marginBottom: "24px",
-          transition: "color .2s",
         }}>
           ← Back to Home
         </Link>
@@ -166,8 +165,7 @@ export default function CartPage() {
         {/* Summer Sale Notice */}
         <div className="sale-notice">
           <div className="sale-notice-text">
-            🔥 <span>SUMMER SALE!</span> Recorded: Rs. {SALE_RECORDED_PRICE.toLocaleString()} (was Rs. {ORIGINAL_RECORDED_PRICE.toLocaleString()}) · 
-            Live: Rs. {SALE_LIVE_PRICE.toLocaleString()} (was Rs. {ORIGINAL_LIVE_PRICE.toLocaleString()})
+            🔥 <span>SUMMER SALE!</span> Recorded: Rs. {SALE_RECORDED_PRICE.toLocaleString()} (was Rs. {ORIGINAL_RECORDED_PRICE.toLocaleString()})
           </div>
         </div>
 
@@ -204,10 +202,8 @@ export default function CartPage() {
                     <p className="item-desc">{item.description}</p>
                     {item.type === "service" ? (
                       <p className="item-delivery-service">💼 50% now · 50% after completion</p>
-                    ) : item.courseType === "recorded" ? (
-                      <p className="item-delivery-course">📹 Recorded · access within 3 days</p>
                     ) : (
-                      <p className="item-delivery-course">🔴 Live · starts within 1–2 days</p>
+                      <p className="item-delivery-course">📹 Recorded · access within 3 days</p>
                     )}
                   </div>
                   <div style={{ textAlign: "right", flexShrink: 0 }}>
@@ -278,7 +274,7 @@ export default function CartPage() {
                 `Transfer Rs. ${amountDueNow.toLocaleString()} to SadaPay above`,
                 `Click "Send Order on WhatsApp" below`,
                 `Attach payment screenshot on +92 318 2082758`,
-                hasCourse ? `📹 Recorded access: within 3 days · 🔴 Live: starts in 1–2 days` : null,
+                hasCourse ? `📹 Course access sent within 3 days of payment` : null,
                 hasService ? `Work starts immediately after confirmation` : null,
                 hasService ? `Pay remaining 50% after project completion` : null,
               ].filter(Boolean).map((step, i) => (
@@ -288,9 +284,19 @@ export default function CartPage() {
                 </div>
               ))}
               <p className="instructions-note">
-                ⚠️ Platform accounts (n8n, VAPI, hosting, domains) are provided by client.
+                ⚠️ Platform accounts (n8n, hosting, domains) are provided by client.
               </p>
             </div>
+
+            {/* Refund Notice */}
+            {hasCourse && (
+              <div className="refund-notice">
+                <p className="refund-notice-title">⚠️ No Refund Policy</p>
+                <p className="refund-notice-text">
+                  Course purchase karne ke baad koi refund nahi diya jayega. Enroll karne se pehle course outline zaroor dekh lein.
+                </p>
+              </div>
+            )}
 
             {/* WhatsApp */}
             <a
@@ -305,7 +311,7 @@ export default function CartPage() {
               <p>Send payment screenshot to</p>
               <div className="wa-number-val">
                 <span className="wa-number-text">+92 318 2082758</span>
-                <button onClick={() => copy("923368952826", "wa")} className="btn-copy-small">
+                <button onClick={() => copy("923182082758", "wa")} className="btn-copy-small">
                   {copied === "wa" ? "✓ Copied" : "Copy"}
                 </button>
               </div>
