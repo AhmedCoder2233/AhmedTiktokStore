@@ -277,7 +277,7 @@ export default function CartPage() {
               {[
                 `Transfer Rs. ${amountDueNow.toLocaleString()} to SadaPay above`,
                 `Click "Send Order on WhatsApp" below`,
-                `Attach payment screenshot on +92 336 8952826`,
+                `Attach payment screenshot on +92 318 2082758`,
                 hasCourse ? `📹 Recorded access: within 3 days · 🔴 Live: starts in 1–2 days` : null,
                 hasService ? `Work starts immediately after confirmation` : null,
                 hasService ? `Pay remaining 50% after project completion` : null,
@@ -294,7 +294,7 @@ export default function CartPage() {
 
             {/* WhatsApp */}
             <a
-              href={`https://wa.me/923368952826?text=${getWhatsAppMessage()}`}
+              href={`https://wa.me/923182082758?text=${getWhatsAppMessage()}`}
               target="_blank" rel="noopener noreferrer"
               className="btn-wa"
             >
@@ -304,7 +304,7 @@ export default function CartPage() {
             <div className="wa-number">
               <p>Send payment screenshot to</p>
               <div className="wa-number-val">
-                <span className="wa-number-text">+92 336 8952826</span>
+                <span className="wa-number-text">+92 318 2082758</span>
                 <button onClick={() => copy("923368952826", "wa")} className="btn-copy-small">
                   {copied === "wa" ? "✓ Copied" : "Copy"}
                 </button>
