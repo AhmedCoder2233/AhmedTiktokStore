@@ -650,8 +650,7 @@ export default function Home() {
               {[
                 { val: "30K", label: "AI Automation", desc: "n8n workflow builds" },
                 { val: "20K", label: "Website", desc: "Full business site" },
-                { val: "7.5K", label: "Recorded Course", desc: "Lifetime access" },
-                { val: "∞", label: "Support", desc: "Post-delivery guidance" },
+                { val: "7.5K", label: "Recorded Course", desc: "Lifetime access" }
               ].map(s => (
                 <div key={s.label} className="stat-card">
                   <div className="stat-val">Rs. {s.val}</div>
