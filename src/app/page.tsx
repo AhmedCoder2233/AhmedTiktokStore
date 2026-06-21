@@ -676,12 +676,12 @@ export default function Home() {
             <Link href="/cart" className="btn-add btn-primary" style={{ width: "auto", padding: "14px 32px", textDecoration: "none" }}>
               Go to Cart →
             </Link>
-            <a href="https://wa.me/923368952826" target="_blank" rel="noopener noreferrer" className="btn-wa">
+            <a href="https://wa.me/923182082758" target="_blank" rel="noopener noreferrer" className="btn-wa">
               💬 Chat on WhatsApp
             </a>
           </div>
           <div style={{ marginTop: "24px", fontSize: "12px", color: "#aaa" }}>
-            Questions? WhatsApp +92 336 8952826
+            Questions? WhatsApp +92 318 2082758
           </div>
         </div>
       </section>
