@@ -700,7 +700,7 @@ export default function Home() {
       subtitle: 'Professional business website',
       price: 20000,
       icon: <FaGlobe />,
-      features: ['Responsive modern design', 'Up to 8 pages', 'SEO optimization', '1 month free support'],
+      features: ['Responsive modern design', 'Up to 8 pages', 'SEO optimization', 'Build On Modern Frameworks'],
       note: "Domain, hosting & third-party costs are the client's responsibility.",
     },
   ];
