@@ -6,8 +6,8 @@ import Navbar from './components/Navbar';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata = {
-  title: 'Ahmed Memon · AI Automation',
-  description: 'Master n8n, AI agents & automation – courses & done‑for‑you services.',
+  title: 'Ahmed Memon · AI Dev',
+  description: 'Master n8n, AI Calling Agnets & Automation – courses & done‑for‑you services.',
 };
 
 export default function RootLayout({
