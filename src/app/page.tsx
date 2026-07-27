@@ -258,11 +258,9 @@ function Hero() {
             </div>
             {/* Placeholder trust strip — replace with real numbers */}
             <div className="flex flex-wrap gap-x-8 gap-y-2 pt-6 font-mono text-xs text-emerald-200/50">
-              <span>STUDENTS · 500+*</span>
-              <span>WORKFLOWS SHIPPED · 120+*</span>
-              <span className="flex items-center gap-1"><FaStar className="text-amber-400" /> 4.9/5*</span>
+              <span>STUDENTS · 50+</span>
+              <span>PROJECT SHIPPED · 10+</span>
             </div>
-            <p className="text-[0.65rem] text-emerald-200/30">*sample figures — replace with your real numbers</p>
           </div>
 
           <motion.div
