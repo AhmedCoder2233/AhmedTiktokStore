@@ -303,11 +303,21 @@ function CourseCard({ course }: { course: any }) {
       className="bg-white rounded-2xl p-6 shadow-[0_1px_2px_rgba(0,0,0,0.04)] border border-emerald-950/8 hover:shadow-lg hover:border-emerald-800/15 transition-all"
     >
       <div className="flex justify-between items-start">
-        <NodeChip>{course.badge}</NodeChip>
-        <span className="text-xs text-emerald-950/40 flex items-center gap-1 font-mono"><FaClock /> {course.classes}</span>
+        <div className="flex items-center gap-2 flex-wrap">
+          <NodeChip>{course.badge}</NodeChip>
+          <span className="font-mono text-[0.7rem] tracking-wide uppercase bg-amber-100 text-amber-800 border border-amber-300/50 px-2.5 py-1 rounded-md">
+            Recorded
+          </span>
+        </div>
+        <span className="text-xs text-emerald-950/40 flex items-center gap-1 font-mono shrink-0 text-right">
+          <FaClock /> {course.classes}
+        </span>
       </div>
       <h3 className="font-display text-2xl font-bold mt-3 text-emerald-950">{course.name}</h3>
       <p className="text-emerald-950/50 text-sm mt-1">{course.subtitle}</p>
+      {course.duration && (
+        <p className="text-xs text-emerald-950/40 mt-1.5 font-mono">{course.duration} per class · watch anytime</p>
+      )}
       <div className="flex items-center gap-3 mt-3">
         <span className="font-mono text-2xl font-semibold text-emerald-950">Rs. {course.price.toLocaleString()}</span>
         <span className="text-sm line-through text-emerald-950/30">Rs. {course.originalPrice.toLocaleString()}</span>
@@ -651,6 +661,7 @@ export default function Home() {
       discount: 38,
       badge: 'Popular',
       classes: '6 classes',
+      duration: '~1h 30m',
       romanUrdu: true,
       outline: [
         { title: 'Class 1 — Introduction, UI & Setup', points: ['What is n8n?', 'AI automation vs normal automation', 'Cloud vs self-hosted', 'n8n instance tour (UI walkthrough)', 'Basic workflow concept'] },
@@ -670,6 +681,7 @@ export default function Home() {
       discount: 38,
       badge: 'New',
       classes: '6 classes',
+      duration: '~1h 30m',
       romanUrdu: true,
       outline: [
         { title: 'Class 1 — Introduction to AI Call Agents', points: ['What an AI call agent is and how it works', 'Popular platforms: VAPI, Retell AI', 'Inbound vs outbound agents', 'Real-world use cases', 'Setting up Retell AI and dashboard walkthrough'] },
