@@ -316,7 +316,7 @@ function CourseCard({ course }: { course: any }) {
       <h3 className="font-display text-2xl font-bold mt-3 text-emerald-950">{course.name}</h3>
       <p className="text-emerald-950/50 text-sm mt-1">{course.subtitle}</p>
       {course.duration && (
-        <p className="text-xs text-emerald-950/40 mt-1.5 font-mono">{course.duration} (~15m/class) · watch anytime</p>
+        <p className="text-xs text-emerald-950/40 mt-1.5 font-mono">{course.duration} · watch anytime</p>
       )}
       <div className="flex items-center gap-3 mt-3">
         <span className="font-mono text-2xl font-semibold text-emerald-950">Rs. {course.price.toLocaleString()}</span>
@@ -458,7 +458,7 @@ function HomePage({ courses, services }: { courses: any[]; services: any[] }) {
             <div className="flex items-center justify-between mb-10">
               <div>
                 <p className="font-mono text-xs text-emerald-700/60 mb-1">01 · LEARN IT YOURSELF</p>
-                <h2 className="font-display text-3xl font-bold text-emerald-950">Courses</h2>
+                <h2 className="font-display text-3xl font-bold text-emerald-950">Master Classes</h2>
               </div>
               <span className="text-sm text-emerald-950/40 hidden sm:block">lifetime access · no refund</span>
             </div>
@@ -660,8 +660,8 @@ export default function Home() {
       originalPrice: 12000,
       discount: 38,
       badge: 'Popular',
-      classes: '6 classes',
-      duration: '~1h 30m total',
+      classes: '11 classes',
+      duration: '~2h 30m total',
       romanUrdu: true,
       outline: [
         { title: 'Class 1 — Introduction, UI & Setup', points: ['What is n8n?', 'AI automation vs normal automation', 'Cloud vs self-hosted', 'n8n instance tour (UI walkthrough)', 'Basic workflow concept'] },
@@ -669,7 +669,12 @@ export default function Home() {
         { title: 'Class 3 — Triggers, Webhooks & Cron Jobs', points: ['What is a webhook?', 'What is a cron job?', 'Form submission automations', 'Workflow trigger node', 'Real-world examples'] },
         { title: 'Class 4 — APIs & Real Integrations', points: ['What is an API?', 'GET vs POST requests', 'MCP server & client', 'How mapping, set nodes & expressions work'] },
         { title: 'Class 5 — Logic & Smart Automations', points: ['IF conditions', 'Switch nodes', 'Filters', 'AI agent node introduction', 'How AI agent nodes work'] },
-        { title: 'Final Project — WhatsApp Restaurant Chatbot', points: ['Third-party WhatsApp tool setup, no Business API needed', 'Building the chatbot flow — customer messages, AI takes the order', 'AI agent node configuration for natural conversation', 'Parsing and validating the order (item, quantity, price)', 'Saving confirmed orders to Google Sheets in real time', 'Full end-to-end walkthrough'] },
+        { title: 'Class 6 — WhatsApp Restaurant Chatbot', points: ['Third-party WhatsApp tool setup, no Business API needed', 'Building the chatbot flow — customer messages, AI takes the order', 'AI agent node configuration for natural conversation', 'Parsing and validating the order (item, quantity, price)', 'Saving confirmed orders to Google Sheets in real time', 'Full end-to-end walkthrough'] },
+        { title: 'Class 7 — What is RAG?', points: ['What RAG (Retrieval-Augmented Generation) is', 'RAG with Pinecone', 'How to set up RAG in your workflow'] },
+        { title: 'Class 8 — Error Handling', points: ['How error handling works', 'Building production-ready error handling'] },
+        { title: 'Class 9 — Memory in AI Agents', points: ['Short-term vs long-term memory', 'Using Supabase Postgres as production-ready long-term memory', 'How memory state is maintained'] },
+        { title: 'Class 10 — Finding & Delivering to Clients', points: ['2-3 proven methods to find clients', 'Writing an effective outreach message', 'How to deliver AI automation to a client'] },
+        { title: 'Class 11 — Lead Generation Automation', points: ['Automation that scrapes leads from Google Maps', 'AI writes a personalized email for each lead', 'Automatically sends the email to every lead'] },
       ],
     },
     {
@@ -680,7 +685,7 @@ export default function Home() {
       originalPrice: 12000,
       discount: 38,
       badge: 'New',
-      classes: '6 classes',
+      classes: '7 classes',
       duration: '~1h 30m total',
       romanUrdu: true,
       outline: [
@@ -689,7 +694,8 @@ export default function Home() {
         { title: 'Class 3 — Voice & Configuration', points: ['Dynamic vs static variables', 'Choosing the right AI voice (ElevenLabs)', 'Tone, speed, language', 'Building a persona', 'Background sound & silence detection', 'Knowledge base in agent'] },
         { title: 'Class 4 — Integrations — CRM, Calendar & Webhooks', points: ['Connecting to a CRM (GoHighLevel, HubSpot, etc.)', 'Booking via Cal.com or Google Calendar', 'Sending call data via webhooks', 'Tools like transfer call and more'] },
         { title: 'Class 5 — Phone Number Setup', points: ['Connecting a number with Retell', 'Where to buy numbers', 'Phone number page UI'] },
-        { title: 'Final Project — AI Receptionist Agent', points: ['Full receptionist agent, built in Roman Urdu'] },
+        { title: 'Class 6 — AI Receptionist Agent', points: ['Full receptionist agent, built in Roman Urdu'] },
+        { title: 'Class 7 — Finding Clients & Outreach', points: ['How to find clients for AI voice agents', 'How to deliver the agent to a client', 'Writing an effective outreach message'] },
       ],
     },
   ];
