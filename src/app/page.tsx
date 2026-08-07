@@ -33,6 +33,9 @@ import {
  *
  * Placeholder stats (students / ratings / projects shipped) are marked
  * clearly below — swap in your real numbers before publishing.
+ *
+ * SALE NOTE: Azadi (Independence) Sale — both courses Rs. 5,999 each,
+ * valid until 14 August. See SALE_END_LABEL / SALE_PRICE below.
  * ─────────────────────────────────────────────────────────────────────────
  */
 
@@ -47,6 +50,10 @@ body { font-family: var(--font-body); }
 .font-display { font-family: var(--font-display); }
 .font-mono { font-family: var(--font-mono); }
 `;
+
+// Azadi Sale config — course price locked at Rs. 5,999 until 14 August
+const SALE_PRICE = 5999;
+const SALE_END_LABEL = 'Ends 14 August';
 
 // ─── Types ────────────────────────────────────────────────────────────────
 interface CartItem {
@@ -176,6 +183,15 @@ function Navbar() {
   );
 }
 
+// ─── 1b. Azadi Sale banner ────────────────────────────────────────────────
+function SaleBanner() {
+  return (
+    <div className="fixed top-16 left-0 w-full z-40 bg-amber-400 text-emerald-950 text-center py-2 px-4 text-sm font-semibold font-mono tracking-wide">
+      🇵🇰 Azadi Sale — Both courses at Rs. {SALE_PRICE.toLocaleString()} · {SALE_END_LABEL}
+    </div>
+  );
+}
+
 // ─── 2. Hero — signature element: a live "workflow node" diagram ────────
 function WorkflowDiagram() {
   const nodes = [
@@ -273,7 +289,7 @@ function Hero() {
               <WorkflowDiagram />
               <div className="mt-5 flex items-center justify-between border-t border-white/10 pt-4">
                 <div>
-                  <p className="font-display font-bold text-2xl text-white">Rs. 7,499</p>
+                  <p className="font-display font-bold text-2xl text-white">Rs. {SALE_PRICE.toLocaleString()}</p>
                   <p className="text-xs text-emerald-300/50 line-through">Rs. 12,000</p>
                 </div>
                 <button
@@ -318,11 +334,12 @@ function CourseCard({ course }: { course: any }) {
       {course.duration && (
         <p className="text-xs text-emerald-950/40 mt-1.5 font-mono">{course.duration} · watch anytime</p>
       )}
-      <div className="flex items-center gap-3 mt-3">
+      <div className="flex items-center gap-3 mt-3 flex-wrap">
         <span className="font-mono text-2xl font-semibold text-emerald-950">Rs. {course.price.toLocaleString()}</span>
         <span className="text-sm line-through text-emerald-950/30">Rs. {course.originalPrice.toLocaleString()}</span>
         <span className="bg-amber-100 text-amber-800 text-xs font-semibold px-2 py-0.5 rounded-full">Save {course.discount}%</span>
       </div>
+      <p className="text-xs text-amber-700 font-mono font-semibold mt-1.5">🇵🇰 Azadi Sale price · {SALE_END_LABEL}</p>
       <ul className="text-sm text-emerald-950/70 mt-3 space-y-1.5">
         <li className="flex gap-2"><FaCheckCircle className="text-emerald-600 mt-0.5 shrink-0" /> Lifetime access to all recordings</li>
         <li className="flex gap-2"><FaCheckCircle className="text-emerald-600 mt-0.5 shrink-0" /> Access given immediately after payment</li>
@@ -632,6 +649,7 @@ function AppShell({ courses, services }: { courses: any[]; services: any[] }) {
     <>
       <style dangerouslySetInnerHTML={{ __html: FONT_IMPORT }} />
       <Navbar />
+      <SaleBanner />
       <main>
         <AnimatePresence mode="wait">
           {view === 'home' ? (
@@ -656,9 +674,9 @@ export default function Home() {
       id: 'n8n-course',
       name: 'AI Automation Mastery',
       subtitle: 'Master n8n workflows from scratch',
-      price: 7499,
+      price: SALE_PRICE,
       originalPrice: 12000,
-      discount: 38,
+      discount: Math.round((1 - SALE_PRICE / 12000) * 100),
       badge: 'Popular',
       classes: '11 classes',
       duration: '~2h 30m total',
@@ -681,9 +699,9 @@ export default function Home() {
       id: 'voice-course',
       name: 'AI Voice Agent Course',
       subtitle: 'Build production-ready AI agents',
-      price: 7499,
+      price: SALE_PRICE,
       originalPrice: 12000,
-      discount: 38,
+      discount: Math.round((1 - SALE_PRICE / 12000) * 100),
       badge: 'New',
       classes: '7 classes',
       duration: '~1h 30m total',
