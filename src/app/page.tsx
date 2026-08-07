@@ -187,7 +187,7 @@ function Navbar() {
 function SaleBanner() {
   return (
     <div className="fixed top-16 left-0 w-full z-40 bg-amber-400 text-emerald-950 text-center py-2 px-4 text-sm font-semibold font-mono tracking-wide">
-      🇵🇰 Azadi Sale — Both courses at Rs. {SALE_PRICE.toLocaleString()} · {SALE_END_LABEL}
+      🇵🇰 Azadi Sale — Har course sirf Rs. {SALE_PRICE.toLocaleString()} · {SALE_END_LABEL}
     </div>
   );
 }
