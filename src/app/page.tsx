@@ -33,9 +33,6 @@ import {
  *
  * Placeholder stats (students / ratings / projects shipped) are marked
  * clearly below — swap in your real numbers before publishing.
- *
- * SALE NOTE: Azadi (Independence) Sale — both courses Rs. 5,999 each,
- * valid until 14 August. See SALE_END_LABEL / SALE_PRICE below.
  * ─────────────────────────────────────────────────────────────────────────
  */
 
@@ -51,9 +48,8 @@ body { font-family: var(--font-body); }
 .font-mono { font-family: var(--font-mono); }
 `;
 
-// Azadi Sale config — course price locked at Rs. 5,999 until 14 August
-const SALE_PRICE = 5999;
-const SALE_END_LABEL = 'Ends 14 August';
+// Course price — fixed at Rs. 6,000
+const COURSE_PRICE = 6000;
 
 // ─── Types ────────────────────────────────────────────────────────────────
 interface CartItem {
@@ -183,15 +179,6 @@ function Navbar() {
   );
 }
 
-// ─── 1b. Azadi Sale banner ────────────────────────────────────────────────
-function SaleBanner() {
-  return (
-    <div className="fixed top-16 left-0 w-full z-40 bg-amber-400 text-emerald-950 text-center py-2 px-4 text-sm font-semibold font-mono tracking-wide">
-      🇵🇰 Azadi Sale — Har course sirf Rs. {SALE_PRICE.toLocaleString()} · {SALE_END_LABEL}
-    </div>
-  );
-}
-
 // ─── 2. Hero — signature element: a live "workflow node" diagram ────────
 function WorkflowDiagram() {
   const nodes = [
@@ -233,7 +220,7 @@ function WorkflowDiagram() {
 function Hero() {
   const { goTo } = useCart();
   return (
-    <section className="relative overflow-hidden bg-[#081712] pt-28 pb-20">
+    <section className="relative overflow-hidden bg-[#081712] pt-24 pb-20">
       <div
         className="absolute inset-0 opacity-[0.07]"
         style={{
@@ -289,7 +276,7 @@ function Hero() {
               <WorkflowDiagram />
               <div className="mt-5 flex items-center justify-between border-t border-white/10 pt-4">
                 <div>
-                  <p className="font-display font-bold text-2xl text-white">Rs. {SALE_PRICE.toLocaleString()}</p>
+                  <p className="font-display font-bold text-2xl text-white">Rs. {COURSE_PRICE.toLocaleString()}</p>
                   <p className="text-xs text-emerald-300/50 line-through">Rs. 12,000</p>
                 </div>
                 <button
@@ -339,7 +326,6 @@ function CourseCard({ course }: { course: any }) {
         <span className="text-sm line-through text-emerald-950/30">Rs. {course.originalPrice.toLocaleString()}</span>
         <span className="bg-amber-100 text-amber-800 text-xs font-semibold px-2 py-0.5 rounded-full">Save {course.discount}%</span>
       </div>
-      <p className="text-xs text-amber-700 font-mono font-semibold mt-1.5">🇵🇰 Azadi Sale price · {SALE_END_LABEL}</p>
       <ul className="text-sm text-emerald-950/70 mt-3 space-y-1.5">
         <li className="flex gap-2"><FaCheckCircle className="text-emerald-600 mt-0.5 shrink-0" /> Lifetime access to all recordings</li>
         <li className="flex gap-2"><FaCheckCircle className="text-emerald-600 mt-0.5 shrink-0" /> Access given immediately after payment</li>
@@ -419,6 +405,7 @@ function ServiceCard({ service }: { service: any }) {
         {service.features.map((f: string, i: number) => (
           <li key={i} className="flex gap-2"><FaCheckCircle className="text-emerald-600 mt-0.5 shrink-0" /> {f}</li>
         ))}
+        <li className="flex gap-2"><FaExclamationCircle className="text-amber-500 mt-0.5 shrink-0" /> No refund policy</li>
       </ul>
       <p className="text-xs text-emerald-950/40 mt-2">{service.note}</p>
       <button
@@ -457,7 +444,7 @@ function Footer() {
       <div className="max-w-7xl mx-auto px-4">
         <p className="font-display font-semibold text-emerald-950/70">Ahmed<span className="text-emerald-600">.</span></p>
         <p className="mt-2">© 2026 Ahmed Memon · AI Automation. All rights reserved.</p>
-        <p className="text-xs mt-1">No refund policy on courses · lifetime access to recordings.</p>
+        <p className="text-xs mt-1">No refund policy on courses &amp; services · lifetime access to recordings.</p>
       </div>
     </footer>
   );
@@ -520,7 +507,7 @@ function CheckoutPage() {
   );
 
   return (
-    <section className="min-h-screen bg-[#F7F6F2] pt-28 pb-20">
+    <section className="min-h-screen bg-[#F7F6F2] pt-24 pb-20">
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
         <button onClick={() => goTo('home')} className="text-emerald-950/60 hover:text-emerald-950 text-sm font-medium inline-flex items-center gap-2 mb-6">
           <FaArrowLeft /> Back to courses &amp; services
@@ -649,7 +636,6 @@ function AppShell({ courses, services }: { courses: any[]; services: any[] }) {
     <>
       <style dangerouslySetInnerHTML={{ __html: FONT_IMPORT }} />
       <Navbar />
-      <SaleBanner />
       <main>
         <AnimatePresence mode="wait">
           {view === 'home' ? (
@@ -674,9 +660,9 @@ export default function Home() {
       id: 'n8n-course',
       name: 'AI Automation Mastery',
       subtitle: 'Master n8n workflows from scratch',
-      price: SALE_PRICE,
+      price: COURSE_PRICE,
       originalPrice: 12000,
-      discount: Math.round((1 - SALE_PRICE / 12000) * 100),
+      discount: Math.round((1 - COURSE_PRICE / 12000) * 100),
       badge: 'Popular',
       classes: '11 classes',
       duration: '~2h 30m total',
@@ -699,9 +685,9 @@ export default function Home() {
       id: 'voice-course',
       name: 'AI Voice Agent Course',
       subtitle: 'Build production-ready AI agents',
-      price: SALE_PRICE,
+      price: COURSE_PRICE,
       originalPrice: 12000,
-      discount: Math.round((1 - SALE_PRICE / 12000) * 100),
+      discount: Math.round((1 - COURSE_PRICE / 12000) * 100),
       badge: 'New',
       classes: '7 classes',
       duration: '~1h 30m total',
@@ -722,11 +708,11 @@ export default function Home() {
     {
       id: 'ai-auto-service',
       name: 'AI Automation',
-      subtitle: 'Any type of AI automation · n8n workflows',
+      subtitle: 'Any type of AI automation',
       price: 30000,
       icon: <FaRobot />,
-      features: ['Custom workflow design & build', 'n8n automation only', 'API integrations & webhooks', 'Ongoing support & documentation'],
-      note: 'Client provides the n8n platform account.',
+      features: ['Custom workflow design & build', 'API integrations & webhooks'],
+      note: 'Client provides the n8n platform account (if applicable).',
     },
     {
       id: 'website-service',
