@@ -579,9 +579,9 @@ function CheckoutPage() {
             <div className="bg-white rounded-2xl p-6 border border-emerald-950/8">
               <p className="font-semibold text-sm text-emerald-950">Bank details</p>
               <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-sm mt-3">
-                <span className="text-emerald-950/45">Bank</span><span className="font-medium font-mono text-emerald-950">Bank AL Habib</span>
-                <span className="text-emerald-950/45">Title</span><span className="font-medium font-mono text-emerald-950">Shazia W/O Muhammad Nasir</span>
-                <span className="text-emerald-950/45">Account</span><span className="font-medium font-mono text-emerald-950">50481829001580013</span>
+                <span className="text-emerald-950/45">Bank</span><span className="font-medium font-mono text-emerald-950">Sadapay</span>
+                <span className="text-emerald-950/45">Title</span><span className="font-medium font-mono text-emerald-950">SHAZIA</span>
+                <span className="text-emerald-950/45">Account</span><span className="font-medium font-mono text-emerald-950">03133937654</span>
               </div>
               <button onClick={copyBank} className="text-emerald-700 text-sm font-medium mt-3 inline-flex items-center gap-1.5 hover:underline">
                 <FaCopy /> Copy details
