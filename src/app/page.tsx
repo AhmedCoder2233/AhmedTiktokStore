@@ -702,8 +702,7 @@ export default function Home() {
         { title: 'Class 9 — Memory in AI Agents', points: ['Short-term vs long-term memory', 'Using Supabase Postgres as production-ready long-term memory', 'How memory state is maintained'] },
         { title: 'Class 10 — Finding Clients (Part 1) & Delivery', points: ['2-3 proven methods to find clients', 'Writing an effective outreach message', 'How to deliver AI automation to a client'] },
         { title: 'Class 11 — Lead Generation Automation', points: ['Automation that scrapes leads from Google Maps', 'AI writes a personalized email for each lead', 'Automatically sends the email to every lead'] },
-        { title: 'Class 12 — Finding Clients (Part 2)', points: ['More advanced client-hunting methods', 'Cold outreach at scale (DMs, email, WhatsApp)', 'Following up without sounding pushy', 'Turning conversations into paid projects', 'Pricing & closing the deal'] },
-      ],
+{ title: 'Class 12 — Finding Clients (Part 2)', points: ['Finding local clients', 'Finding international clients', '4-5 high-quality client-hunting methods', 'Reaching out via WhatsApp, DMs & Emails', 'Avoiding spam filters while cold emailing'] },      ],
     },
     {
       id: 'voice-course',
