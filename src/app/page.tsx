@@ -714,7 +714,7 @@ export default function Home() {
       discount: Math.round((1 - COURSE_PRICE / 12000) * 100),
       badge: 'New',
       classes: '7 classes',
-      duration: '~1h 30m total',
+      duration: '~1h 45m total',
       romanUrdu: true,
       outline: [
         { title: 'Class 1 — Introduction to AI Call Agents', points: ['What an AI call agent is and how it works', 'Popular platforms: VAPI, Retell AI', 'Inbound vs outbound agents', 'Real-world use cases', 'Setting up Retell AI and dashboard walkthrough'] },
