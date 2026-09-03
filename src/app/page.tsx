@@ -386,6 +386,9 @@ function CourseCard({ course }: { course: any }) {
 // ─── 4. Service Card ────────────────────────────────────────────────────
 function ServiceCard({ service }: { service: any }) {
   const { addItem } = useCart();
+  const discussMessage = encodeURIComponent(
+    `Hi Ahmed, I'm interested in the ${service.name} service. Can we discuss the details and pricing?`
+  );
   return (
     <motion.div
       whileHover={{ y: -4 }}
@@ -394,26 +397,46 @@ function ServiceCard({ service }: { service: any }) {
     >
       <div className="flex items-center justify-between">
         <span className="text-2xl text-emerald-700">{service.icon}</span>
-        <NodeChip>50% advance</NodeChip>
+        {!service.priceOnRequest && <NodeChip>50% advance</NodeChip>}
       </div>
       <h3 className="font-display text-2xl font-bold mt-3 text-emerald-950">{service.name}</h3>
       <p className="text-emerald-950/50 text-sm mt-1">{service.subtitle}</p>
-      <div className="mt-3 font-mono text-2xl font-semibold text-emerald-950">
-        Rs. {service.price.toLocaleString()} <span className="text-sm font-normal text-emerald-950/40 font-body">/ project</span>
-      </div>
+
+      {service.priceOnRequest ? (
+        <p className="mt-3 text-sm font-medium text-emerald-950/60 italic">Pricing depends on project scope — let's talk.</p>
+      ) : (
+        <div className="mt-3 font-mono text-2xl font-semibold text-emerald-950">
+          Rs. {service.price.toLocaleString()} <span className="text-sm font-normal text-emerald-950/40 font-body">/ project</span>
+        </div>
+      )}
+
       <ul className="text-sm text-emerald-950/70 mt-3 space-y-1.5">
         {service.features.map((f: string, i: number) => (
           <li key={i} className="flex gap-2"><FaCheckCircle className="text-emerald-600 mt-0.5 shrink-0" /> {f}</li>
         ))}
-        <li className="flex gap-2"><FaExclamationCircle className="text-amber-500 mt-0.5 shrink-0" /> No refund policy</li>
+        {!service.priceOnRequest && (
+          <li className="flex gap-2"><FaExclamationCircle className="text-amber-500 mt-0.5 shrink-0" /> No refund policy</li>
+        )}
       </ul>
       <p className="text-xs text-emerald-950/40 mt-2">{service.note}</p>
-      <button
-        onClick={() => addItem({ id: service.id, name: service.name, price: service.price, half: service.price / 2, type: 'service' })}
-        className="mt-5 w-full bg-emerald-950 hover:bg-emerald-900 text-white font-semibold py-2.5 rounded-xl transition flex items-center justify-center gap-2"
-      >
-        <FaCartPlus /> Add to cart
-      </button>
+
+      {service.priceOnRequest ? (
+        <a
+          href={`https://wa.me/923182082758?text=${discussMessage}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-5 w-full bg-emerald-950 hover:bg-emerald-900 text-white font-semibold py-2.5 rounded-xl transition flex items-center justify-center gap-2"
+        >
+          <FaWhatsapp /> Let's discuss
+        </a>
+      ) : (
+        <button
+          onClick={() => addItem({ id: service.id, name: service.name, price: service.price, half: service.price / 2, type: 'service' })}
+          className="mt-5 w-full bg-emerald-950 hover:bg-emerald-900 text-white font-semibold py-2.5 rounded-xl transition flex items-center justify-center gap-2"
+        >
+          <FaCartPlus /> Add to cart
+        </button>
+      )}
     </motion.div>
   );
 }
@@ -664,8 +687,8 @@ export default function Home() {
       originalPrice: 12000,
       discount: Math.round((1 - COURSE_PRICE / 12000) * 100),
       badge: 'Popular',
-      classes: '11 classes',
-      duration: '~2h 30m total',
+      classes: '12 classes',
+      duration: '~2h 45m total',
       romanUrdu: true,
       outline: [
         { title: 'Class 1 — Introduction, UI & Setup', points: ['What is n8n?', 'AI automation vs normal automation', 'Cloud vs self-hosted', 'n8n instance tour (UI walkthrough)', 'Basic workflow concept'] },
@@ -677,8 +700,9 @@ export default function Home() {
         { title: 'Class 7 — What is RAG?', points: ['What RAG (Retrieval-Augmented Generation) is', 'RAG with Pinecone', 'How to set up RAG in your workflow'] },
         { title: 'Class 8 — Error Handling', points: ['How error handling works', 'Building production-ready error handling'] },
         { title: 'Class 9 — Memory in AI Agents', points: ['Short-term vs long-term memory', 'Using Supabase Postgres as production-ready long-term memory', 'How memory state is maintained'] },
-        { title: 'Class 10 — Finding & Delivering to Clients', points: ['2-3 proven methods to find clients', 'Writing an effective outreach message', 'How to deliver AI automation to a client'] },
+        { title: 'Class 10 — Finding Clients (Part 1) & Delivery', points: ['2-3 proven methods to find clients', 'Writing an effective outreach message', 'How to deliver AI automation to a client'] },
         { title: 'Class 11 — Lead Generation Automation', points: ['Automation that scrapes leads from Google Maps', 'AI writes a personalized email for each lead', 'Automatically sends the email to every lead'] },
+        { title: 'Class 12 — Finding Clients (Part 2)', points: ['More advanced client-hunting methods', 'Cold outreach at scale (DMs, email, WhatsApp)', 'Following up without sounding pushy', 'Turning conversations into paid projects', 'Pricing & closing the deal'] },
       ],
     },
     {
@@ -709,7 +733,7 @@ export default function Home() {
       id: 'ai-auto-service',
       name: 'AI Automation',
       subtitle: 'Any type of AI automation',
-      price: 30000,
+      priceOnRequest: true,
       icon: <FaRobot />,
       features: ['Custom workflow design & build', 'API integrations & webhooks'],
       note: 'Client provides the n8n platform account (if applicable).',
@@ -718,7 +742,7 @@ export default function Home() {
       id: 'website-service',
       name: 'Complete Website',
       subtitle: 'Professional business website',
-      price: 20000,
+      priceOnRequest: true,
       icon: <FaGlobe />,
       features: ['Responsive modern design', 'Up to 8 pages', 'SEO Friendly', 'Build On Modern Frameworks'],
       note: "Domain, hosting & third-party costs are the client's responsibility.",
