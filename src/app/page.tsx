@@ -1,756 +1,864 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { ReactNode, useEffect, useRef, useState } from 'react';
+import { motion, AnimatePresence, useInView } from 'framer-motion';
 import {
-  FaShoppingCart,
-  FaRocket,
-  FaConciergeBell,
-  FaClock,
-  FaCheckCircle,
-  FaExclamationCircle,
-  FaChevronDown,
-  FaChevronUp,
-  FaMicrophoneAlt,
-  FaCartPlus,
-  FaRobot,
-  FaGlobe,
-  FaTrashAlt,
-  FaCopy,
   FaWhatsapp,
+  FaRobot,
+  FaPhoneAlt,
+  FaGlobe,
+  FaCheck,
+  FaBars,
+  FaTimes,
+  FaClock,
+  FaMicrophoneAlt,
+  FaListUl,
   FaArrowRight,
-  FaArrowLeft,
-  FaStar,
 } from 'react-icons/fa';
 
 /**
  * ─────────────────────────────────────────────────────────────────────────
- * DESIGN NOTE
- * Fonts: Space Grotesk (display / headings) + Inter (body) + JetBrains Mono
- * (prices, badges, node labels — a nod to the n8n workflow-node aesthetic).
- * For production, move the @import below into your root layout.tsx via
- * next/font instead of the CSS @import used here for single-file portability.
- *
- * Placeholder stats (students / ratings / projects shipped) are marked
- * clearly below — swap in your real numbers before publishing.
+ * CENTERED HERO WITH FIXED VISIBILITY + REAL FEEDBACK SCREENSHOTS
+ * 
+ * Fixed: Navbar overlap issue, font contrast, background blur
+ * Feedback: Real student screenshots added
  * ─────────────────────────────────────────────────────────────────────────
  */
 
 const FONT_IMPORT = `
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700;800&display=swap');
+
 :root {
   --font-display: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
   --font-body: 'Inter', ui-sans-serif, system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  --bg: #f7f3ee;
+  --bg-warm: #f0ebe5;
+  --panel: #ffffff;
+  --panel-soft: #f5f0ea;
+  --line: rgba(44, 34, 28, 0.06);
+  --line-strong: rgba(44, 34, 28, 0.12);
+
+  --text: #2c221c;
+  --text-muted: #5a4a3e;
+  --text-dim: #8a7a6e;
+
+  --accent: #c46b3a;
+  --accent-light: #e8c9b0;
+  --accent-soft: rgba(196, 107, 58, 0.06);
+  --accent-gradient: linear-gradient(135deg, #c46b3a, #a8552a);
 }
-body { font-family: var(--font-body); }
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { background: var(--bg); font-family: var(--font-body); color: var(--text); line-height: 1.5; }
 .font-display { font-family: var(--font-display); }
-.font-mono { font-family: var(--font-mono); }
+
+.square { border-radius: 0px; }
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
 `;
 
-// Course price — fixed at Rs. 6,000
+const WHATSAPP_NUMBER = '923182082758';
+const BUSINESS_NAME = 'Ahmed Memon';
 const COURSE_PRICE = 6000;
+const COURSE_ORIGINAL = 12000;
 
-// ─── Types ────────────────────────────────────────────────────────────────
-interface CartItem {
-  id: string;
-  name: string;
-  price: number;
-  half: number;
-  type: 'course' | 'service';
+function waLink(message: string) {
+  return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
 }
 
-type ViewName = 'home' | 'checkout';
-
-interface CartContextType {
-  cart: CartItem[];
-  addItem: (item: CartItem) => void;
-  removeItem: (id: string) => void;
-  clearCart: () => void;
-  totalAdvance: number;
-  totalDue: number;
-  totalPayNow: number;
-  itemCount: number;
-  view: ViewName;
-  goTo: (v: ViewName) => void;
-}
-
-// ─── Cart + Navigation Context ─────────────────────────────────────────────
-const CartContext = createContext<CartContextType | undefined>(undefined);
-
-function CartProvider({ children }: { children: ReactNode }) {
-  const [cart, setCart] = useState<CartItem[]>([]);
-  const [view, setView] = useState<ViewName>('home');
-
-  useEffect(() => {
-    const stored = localStorage.getItem('ahmedCart');
-    if (stored) {
-      try {
-        setCart(JSON.parse(stored));
-      } catch {
-        setCart([]);
-      }
-    }
-    // Basic back-button support for the checkout "page"
-    const onPop = (e: PopStateEvent) => setView(e.state?.view === 'checkout' ? 'checkout' : 'home');
-    window.addEventListener('popstate', onPop);
-    return () => window.removeEventListener('popstate', onPop);
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem('ahmedCart', JSON.stringify(cart));
-  }, [cart]);
-
-  const goTo = (v: ViewName) => {
-    setView(v);
-    window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
-    window.history.pushState({ view: v }, '', v === 'checkout' ? '#checkout' : '#');
-  };
-
-  const addItem = (item: CartItem) => {
-    setCart((prev) => (prev.some((i) => i.id === item.id) ? prev : [...prev, item]));
-    goTo('checkout');
-  };
-
-  const removeItem = (id: string) => setCart((prev) => prev.filter((i) => i.id !== id));
-  const clearCart = () => setCart([]);
-
-  // Courses are paid in full up front. Services are 50% now, 50% on delivery.
-  const totalAdvance = cart.filter((i) => i.type === 'service').reduce((sum, i) => sum + i.half, 0);
-  const totalDue = cart.filter((i) => i.type === 'service').reduce((sum, i) => sum + (i.price - i.half), 0);
-  const totalPayNow = cart.reduce((sum, i) => sum + (i.type === 'service' ? i.half : i.price), 0);
-
+// ─── Scroll Reveal ───
+function Reveal({ children, className = '', delay = 0 }: { children: ReactNode; className?: string; delay?: number }) {
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true, margin: '-8% 0px' });
   return (
-    <CartContext.Provider
-      value={{ cart, addItem, removeItem, clearCart, totalAdvance, totalDue, totalPayNow, itemCount: cart.length, view, goTo }}
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 20 }}
+      animate={inView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1], delay }}
+      className={className}
     >
       {children}
-    </CartContext.Provider>
+    </motion.div>
   );
 }
 
-function useCart() {
-  const ctx = useContext(CartContext);
-  if (!ctx) throw new Error('useCart must be used within CartProvider');
-  return ctx;
-}
+// ─── 1. NAVBAR ──────────────────────────────────────────────────────────────
+const NAV_LINKS = [
+  { label: 'Home', href: '#top' },
+  { label: 'Services', href: '#services' },
+  { label: 'Courses', href: '#courses' },
+  { label: 'Feedback', href: '#feedback' },
+  { label: 'Policies', href: '#policies' },
+  { label: 'Contact', href: '#contact' },
+];
 
-// ─── Small shared bits ──────────────────────────────────────────────────
-function NodeChip({ children }: { children: ReactNode }) {
-  return (
-    <span className="font-mono text-[0.7rem] tracking-wide uppercase bg-emerald-950/5 text-emerald-800 border border-emerald-800/15 px-2.5 py-1 rounded-md">
-      {children}
-    </span>
-  );
-}
-
-// ─── 1. Navbar ──────────────────────────────────────────────────────────
 function Navbar() {
-  const { itemCount, goTo, view } = useCart();
-  return (
-    <nav className="fixed top-0 left-0 w-full z-50 bg-[#F7F6F2]/85 backdrop-blur-md border-b border-emerald-950/10">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
-        <button onClick={() => goTo('home')} className="font-display text-xl font-bold tracking-tight text-emerald-950">
-          Ahmed<span className="text-emerald-600">.</span>
-          <span className="font-mono text-[0.65rem] font-medium text-emerald-700/60 ml-2 align-middle">Memon</span>
-        </button>
-        <div className="flex items-center gap-6 text-sm font-medium text-emerald-950">
-          {view === 'home' && (
-            <>
-              <a href="#courses" className="hidden sm:inline hover:text-emerald-600 transition">Courses</a>
-              <a href="#services" className="hidden sm:inline hover:text-emerald-600 transition">Services</a>
-            </>
-          )}
-          <button
-            onClick={() => goTo('checkout')}
-            className="flex items-center gap-1.5 bg-emerald-950 text-white hover:bg-emerald-900 px-4 py-2 rounded-full transition"
-          >
-            <FaShoppingCart className="text-emerald-300" />
-            <span>Cart</span>
-            {itemCount > 0 && (
-              <span className="bg-amber-400 text-emerald-950 text-[0.65rem] font-bold px-2 py-0.5 rounded-full ml-0.5">
-                {itemCount}
-              </span>
-            )}
-          </button>
-        </div>
-      </div>
-    </nav>
-  );
-}
+  const [open, setOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
-// ─── 2. Hero — signature element: a live "workflow node" diagram ────────
-function WorkflowDiagram() {
-  const nodes = [
-    { label: 'Trigger', sub: 'WhatsApp message', x: 16, y: 40 },
-    { label: 'AI Agent', sub: 'Understands order', x: 178, y: 18 },
-    { label: 'Sheet', sub: 'Saves to Sheets', x: 178, y: 132 },
-    { label: 'Reply', sub: 'Confirms order', x: 344, y: 75 },
-  ];
-  return (
-    <div className="max-w-[380px] mx-auto">
-      <svg viewBox="0 0 420 190" className="w-full h-auto">
-        <defs>
-          <linearGradient id="lineGrad" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor="#34D399" stopOpacity="0.9" />
-            <stop offset="100%" stopColor="#FBBF24" stopOpacity="0.9" />
-          </linearGradient>
-        </defs>
-        <path d="M 90 55 C 130 55, 130 33, 163 33" stroke="url(#lineGrad)" strokeWidth="2" fill="none" />
-        <path d="M 90 55 C 130 55, 130 142, 163 142" stroke="url(#lineGrad)" strokeWidth="2" fill="none" />
-        <path d="M 264 33 C 305 33, 305 75, 329 75" stroke="url(#lineGrad)" strokeWidth="2" fill="none" />
-        <path d="M 264 142 C 305 142, 305 90, 329 85" stroke="url(#lineGrad)" strokeWidth="2" fill="none" />
-        {nodes.map((n, i) => (
-          <g key={i} transform={`translate(${n.x - 16}, ${n.y - 20})`}>
-            <rect width="108" height="40" rx="10" fill="#0B1F18" stroke="#34D399" strokeOpacity="0.5" />
-            <circle cx="12" cy="20" r="4" fill="#FBBF24" />
-            <text x="24" y="17" fill="#ECFDF5" fontSize="10" fontFamily="Space Grotesk, sans-serif" fontWeight={600}>
-              {n.label}
-            </text>
-            <text x="24" y="29" fill="#6EE7B7" fontSize="7" fontFamily="JetBrains Mono, monospace">
-              {n.sub}
-            </text>
-          </g>
-        ))}
-      </svg>
-    </div>
-  );
-}
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
-function Hero() {
-  const { goTo } = useCart();
+  const go = (href: string) => {
+    setOpen(false);
+    document.querySelector(href)?.scrollIntoView({ behavior: 'smooth' });
+  };
+
   return (
-    <section className="relative overflow-hidden bg-[#081712] pt-24 pb-20">
+    <motion.nav
+      initial={{ y: -20, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.6 }}
+      className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 flex justify-center ${
+        scrolled ? 'py-3' : 'py-5'
+      }`}
+    >
       <div
-        className="absolute inset-0 opacity-[0.07]"
-        style={{
-          backgroundImage:
-            'linear-gradient(#34D399 1px, transparent 1px), linear-gradient(90deg, #34D399 1px, transparent 1px)',
-          backgroundSize: '42px 42px',
-        }}
-      />
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="grid lg:grid-cols-2 gap-14 items-center"
-        >
-          <div className="space-y-6">
-            <NodeChip>Ahmed Memon · Official</NodeChip>
-            <h1 className="font-display text-4xl sm:text-5xl lg:text-[3.4rem] font-bold leading-[1.08] text-white">
-              Turn busywork into
-              <span className="text-emerald-400"> workflows</span> that run themselves
-            </h1>
-            <p className="text-lg text-emerald-100/70 max-w-lg">
-              Learn n8n and AI voice agents from scratch, or have a working automation built and shipped for you — no fluff, real projects.
-            </p>
-            <div className="flex flex-wrap gap-4 pt-2">
-              <a
-                href="#courses"
-                className="bg-emerald-400 text-emerald-950 px-6 py-3 rounded-xl font-semibold inline-flex items-center gap-2 hover:bg-emerald-300 transition"
+        className={`w-[92%] max-w-7xl transition-all duration-300 border ${
+          scrolled
+            ? 'bg-white/95 backdrop-blur-md border-[var(--line-strong)] shadow-sm'
+            : 'bg-white/90 backdrop-blur-sm border-[var(--line)]'
+        } square`}
+      >
+        <div className="px-5 sm:px-8 flex items-center justify-between h-[68px]">
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            onClick={() => go('#top')}
+            className="font-display text-xl font-semibold tracking-tight text-[var(--text)]"
+          >
+            {BUSINESS_NAME}
+          </motion.button>
+
+          <div className="hidden lg:flex items-center gap-8">
+            {NAV_LINKS.map((l) => (
+              <button
+                key={l.href}
+                onClick={() => go(l.href)}
+                className="relative text-sm font-medium text-[var(--text-muted)] hover:text-[var(--text)] transition-colors py-1 group"
               >
-                <FaRocket /> Explore courses
-              </a>
-              <a
-                href="#services"
-                className="bg-white/5 border border-white/15 text-white px-6 py-3 rounded-xl font-semibold hover:bg-white/10 transition inline-flex items-center gap-2"
-              >
-                <FaConciergeBell /> Get it built for me
-              </a>
-            </div>
-            {/* Placeholder trust strip — replace with real numbers */}
-            <div className="flex flex-wrap gap-x-8 gap-y-2 pt-6 font-mono text-xs text-emerald-200/50">
-              <span>STUDENTS · 50+</span>
-              <span>PROJECT SHIPPED · 10+</span>
-            </div>
+                {l.label}
+                <span className="absolute left-0 -bottom-0.5 h-px w-0 bg-[var(--accent)] transition-all duration-300 group-hover:w-full" />
+              </button>
+            ))}
+            <motion.a
+              whileHover={{ scale: 1.03 }}
+              href={waLink(`Hi ${BUSINESS_NAME}, I'd like to know more about your services.`)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white transition-transform duration-200 square"
+              style={{ background: 'var(--accent-gradient)' }}
+            >
+              <FaWhatsapp /> Chat
+            </motion.a>
           </div>
 
-          <motion.div
-            initial={{ scale: 0.94, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.15, duration: 0.5 }}
+          <button
+            className="lg:hidden text-[var(--text)] text-xl p-1"
+            onClick={() => setOpen((v) => !v)}
+            aria-label={open ? 'Close menu' : 'Open menu'}
+            aria-expanded={open}
           >
-            <div className="bg-white/[0.04] backdrop-blur-xl rounded-2xl p-6 sm:p-8 border border-white/10">
-              <p className="font-mono text-xs text-emerald-300/70 mb-3">FINAL PROJECT · WHATSAPP RESTAURANT BOT</p>
-              <WorkflowDiagram />
-              <div className="mt-5 flex items-center justify-between border-t border-white/10 pt-4">
-                <div>
-                  <p className="font-display font-bold text-2xl text-white">Rs. {COURSE_PRICE.toLocaleString()}</p>
-                  <p className="text-xs text-emerald-300/50 line-through">Rs. 12,000</p>
-                </div>
-                <button
-                  onClick={() => document.getElementById('courses')?.scrollIntoView({ behavior: 'smooth' })}
-                  className="text-emerald-300 font-medium text-sm inline-flex items-center gap-2 hover:text-emerald-200"
+            {open ? <FaTimes /> : <FaBars />}
+          </button>
+        </div>
+
+        <AnimatePresence>
+          {open && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="lg:hidden overflow-hidden border-t border-[var(--line)]"
+            >
+              <div className="px-5 py-4 flex flex-col gap-1">
+                {NAV_LINKS.map((l) => (
+                  <button
+                    key={l.href}
+                    onClick={() => go(l.href)}
+                    className="text-left py-3 text-[var(--text)] font-medium border-b border-[var(--line)] last:border-0"
+                  >
+                    {l.label}
+                  </button>
+                ))}
+                <a
+                  href={waLink(`Hi ${BUSINESS_NAME}, I'd like to know more about your services.`)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-3 flex items-center justify-center gap-2 px-5 py-3 text-sm font-semibold text-white square"
+                  style={{ background: 'var(--accent-gradient)' }}
                 >
-                  See full outline <FaArrowRight />
-                </button>
+                  <FaWhatsapp /> Chat
+                </a>
               </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </motion.nav>
+  );
+}
+
+// ─── 2. HERO ─── CENTERED WITH FIXED VISIBILITY ──────────────────────
+function Hero() {
+  return (
+    <section id="top" className="relative min-h-[90vh] flex items-center justify-center overflow-hidden pt-20 lg:pt-24">
+      {/* Background Image with Strong Overlay for Text Readability */}
+      <div className="absolute inset-0 z-0">
+        <img
+          src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=1920&h=1080&fit=crop&crop=center&q=80"
+          alt="Modern workspace background"
+          className="w-full h-full object-cover"
+        />
+        {/* Darker overlay for better text visibility */}
+        <div className="absolute inset-0 bg-[#2c221c]/70 backdrop-blur-sm" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#2c221c]/50 via-transparent to-[#2c221c]/50" />
+      </div>
+
+      {/* Content - Centered with better contrast */}
+      <div className="relative z-10 max-w-4xl mx-auto px-5 sm:px-8 text-center py-16">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          {/* Small Badge - White text for dark bg */}
+          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 px-4 py-1.5 text-sm font-medium text-white/90 square mb-6">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#c46b3a] opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-[#c46b3a]" />
+            </span>
+            AI Automation · Voice Agents · Web
+          </div>
+
+          {/* Big Heading - White for contrast */}
+          <h1 className="font-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.08] tracking-tight text-white">
+            Smart Systems for
+            <br />
+            <span className="text-[#c46b3a]">Smarter Business</span>
+          </h1>
+
+          {/* Description - Light text */}
+          <p className="text-base sm:text-lg md:text-xl text-white/80 max-w-2xl mx-auto mt-6 leading-relaxed">
+            Custom AI automations, intelligent voice agents, and modern websites — 
+            built to help your business run more efficiently.
+          </p>
+
+          {/* Buttons */}
+          <div className="flex flex-wrap items-center justify-center gap-4 mt-10">
+            <motion.a
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              href={waLink(`Hi ${BUSINESS_NAME}, I'd like to discuss a project.`)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-8 py-3.5 font-semibold text-white transition-all duration-200 square"
+              style={{ background: 'var(--accent-gradient)' }}
+            >
+              Start a Project <FaArrowRight className="text-sm" />
+            </motion.a>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => document.querySelector('#courses')?.scrollIntoView({ behavior: 'smooth' })}
+              className="inline-flex items-center gap-2 border border-white/30 px-8 py-3.5 font-semibold text-white hover:bg-white/10 transition-colors square"
+            >
+              Explore Courses
+            </motion.button>
+          </div>
+
+          {/* Trust Indicators - White text */}
+          <div className="flex flex-wrap items-center justify-center gap-6 mt-12 pt-6 border-t border-white/10 max-w-md mx-auto">
+            <div className="flex items-center gap-3">
+              <div className="flex -space-x-2">
+                {[1, 2, 3, 4].map((i) => (
+                  <div
+                    key={i}
+                    className="w-8 h-8 rounded-full border-2 border-white/30 bg-white/10 backdrop-blur-sm flex items-center justify-center text-xs font-bold text-white/80"
+                  >
+                    {String.fromCharCode(64 + i)}
+                  </div>
+                ))}
+              </div>
+              <span className="text-sm text-white/70">Trusted by students & businesses</span>
             </div>
-          </motion.div>
+            <div className="flex items-center gap-4 text-sm text-white/70">
+              <span className="flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5" style={{ background: 'var(--accent)' }} />
+                80+ Students
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5" style={{ background: 'var(--accent)' }} />
+                20+ Projects
+              </span>
+            </div>
+          </div>
         </motion.div>
       </div>
     </section>
   );
 }
 
-// ─── 3. Course Card ─────────────────────────────────────────────────────
-function CourseCard({ course }: { course: any }) {
-  const [expanded, setExpanded] = useState(false);
-  const { addItem } = useCart();
+// ─── 3. SERVICES ───────────────────────────────────────────────────────────
+const services = [
+  {
+    id: 'ai-automation',
+    name: 'AI Automation',
+    subtitle: 'Custom automation for any repetitive process in your business.',
+    icon: <FaRobot />,
+    features: ['Custom workflow design and build', 'API and third-party tool integrations', 'Scalable business automation solutions'],
+    note: 'You provide the automation platform account, if one is required.',
+  },
+  {
+    id: 'ai-calling-agent',
+    name: 'AI Calling Agent',
+    subtitle: 'A voice agent that answers, qualifies and books calls for your business.',
+    icon: <FaPhoneAlt />,
+    features: ['Inbound or outbound agent, built to your script', 'CRM, calendar and webhook integrations', 'Trained on your business details'],
+    note: 'You provide the voice platform and phone number account.',
+  },
+  {
+    id: 'website',
+    name: 'Website',
+    subtitle: 'A professional, modern business website that converts visitors.',
+    icon: <FaGlobe />,
+    features: ['Responsive design, up to 8 pages', 'Built on modern, SEO-friendly frameworks', 'Fast, clean and mobile-ready'],
+    note: 'Domain, hosting and third-party costs are your responsibility.',
+  },
+];
 
+function ServiceCard({ service }: { service: (typeof services)[number] }) {
   return (
-    <motion.div
-      whileHover={{ y: -4 }}
-      transition={{ type: 'spring', stiffness: 300 }}
-      className="bg-white rounded-2xl p-6 shadow-[0_1px_2px_rgba(0,0,0,0.04)] border border-emerald-950/8 hover:shadow-lg hover:border-emerald-800/15 transition-all"
+    <motion.div 
+      whileHover={{ y: -6 }}
+      className="h-full flex flex-col border border-[var(--line-strong)] bg-white p-7 transition-all duration-300 hover:shadow-md square"
     >
-      <div className="flex justify-between items-start">
-        <div className="flex items-center gap-2 flex-wrap">
-          <NodeChip>{course.badge}</NodeChip>
-          <span className="font-mono text-[0.7rem] tracking-wide uppercase bg-amber-100 text-amber-800 border border-amber-300/50 px-2.5 py-1 rounded-md">
-            Recorded
-          </span>
-        </div>
-        <span className="text-xs text-emerald-950/40 flex items-center gap-1 font-mono shrink-0 text-right">
-          <FaClock /> {course.classes}
-        </span>
-      </div>
-      <h3 className="font-display text-2xl font-bold mt-3 text-emerald-950">{course.name}</h3>
-      <p className="text-emerald-950/50 text-sm mt-1">{course.subtitle}</p>
-      {course.duration && (
-        <p className="text-xs text-emerald-950/40 mt-1.5 font-mono">{course.duration} · watch anytime</p>
-      )}
-      <div className="flex items-center gap-3 mt-3 flex-wrap">
-        <span className="font-mono text-2xl font-semibold text-emerald-950">Rs. {course.price.toLocaleString()}</span>
-        <span className="text-sm line-through text-emerald-950/30">Rs. {course.originalPrice.toLocaleString()}</span>
-        <span className="bg-amber-100 text-amber-800 text-xs font-semibold px-2 py-0.5 rounded-full">Save {course.discount}%</span>
-      </div>
-      <ul className="text-sm text-emerald-950/70 mt-3 space-y-1.5">
-        <li className="flex gap-2"><FaCheckCircle className="text-emerald-600 mt-0.5 shrink-0" /> Lifetime access to all recordings</li>
-        <li className="flex gap-2"><FaCheckCircle className="text-emerald-600 mt-0.5 shrink-0" /> Access given immediately after payment</li>
-        <li className="flex gap-2"><FaExclamationCircle className="text-amber-500 mt-0.5 shrink-0" /> No refund policy</li>
-      </ul>
-
-      <button
-        className="text-emerald-700 text-sm font-medium mt-3 inline-flex items-center gap-1.5"
-        onClick={() => setExpanded(!expanded)}
+      <motion.div
+        whileHover={{ rotate: 5 }}
+        className="w-11 h-11 flex items-center justify-center text-lg text-white square"
+        style={{ background: 'var(--accent-gradient)' }}
       >
-        {expanded ? <FaChevronUp /> : <FaChevronDown />}
-        {expanded ? 'Hide' : 'Show'} full course outline
-      </button>
+        {service.icon}
+      </motion.div>
+      <h3 className="font-display text-xl font-semibold mt-5 text-[var(--text)]">{service.name}</h3>
+      <p className="text-[var(--text-muted)] text-sm mt-2 leading-relaxed">{service.subtitle}</p>
 
-      <AnimatePresence>
-        {expanded && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.25 }}
-            className="overflow-hidden"
+      <ul className="text-sm text-[var(--text-muted)] mt-5 space-y-2.5 flex-1">
+        {service.features.map((f, i) => (
+          <motion.li 
+            key={i} 
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: i * 0.05 }}
+            className="flex gap-2.5"
           >
-            <div className="mt-4 pt-4 border-t border-emerald-950/8 space-y-4 text-sm">
-              {course.outline.map((cls: any, idx: number) => (
-                <div key={idx} className="flex gap-3">
-                  <span className="font-mono text-xs shrink-0 w-6 h-6 rounded-md bg-emerald-950 text-emerald-300 flex items-center justify-center mt-0.5">
-                    {String(idx + 1).padStart(2, '0')}
-                  </span>
-                  <div>
-                    <p className="font-semibold text-emerald-950">{cls.title.replace(/^Class \d+\s*—\s*/, '').replace(/^Final Project\s*—\s*/, '')}</p>
-                    <ul className="mt-1 space-y-0.5 text-emerald-950/60">
-                      {cls.points.map((point: string, i: number) => (
-                        <li key={i}>· {point}</li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              ))}
-              {course.romanUrdu && (
-                <p className="text-xs text-emerald-950/40 flex items-center gap-1.5"><FaMicrophoneAlt /> Includes a Roman Urdu project walkthrough</p>
-              )}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <button
-        onClick={() => addItem({ id: course.id, name: course.name, price: course.price, half: 0, type: 'course' })}
-        className="mt-5 w-full bg-emerald-950 hover:bg-emerald-900 text-white font-semibold py-2.5 rounded-xl transition flex items-center justify-center gap-2"
-      >
-        <FaCartPlus /> Enroll now
-      </button>
-    </motion.div>
-  );
-}
-
-// ─── 4. Service Card ────────────────────────────────────────────────────
-function ServiceCard({ service }: { service: any }) {
-  const { addItem } = useCart();
-  const discussMessage = encodeURIComponent(
-    `Hi Ahmed, I'm interested in the ${service.name} service. Can we discuss the details and pricing?`
-  );
-  return (
-    <motion.div
-      whileHover={{ y: -4 }}
-      transition={{ type: 'spring', stiffness: 300 }}
-      className="bg-white rounded-2xl p-6 shadow-[0_1px_2px_rgba(0,0,0,0.04)] border border-emerald-950/8 hover:shadow-lg hover:border-emerald-800/15 transition-all"
-    >
-      <div className="flex items-center justify-between">
-        <span className="text-2xl text-emerald-700">{service.icon}</span>
-        {!service.priceOnRequest && <NodeChip>50% advance</NodeChip>}
-      </div>
-      <h3 className="font-display text-2xl font-bold mt-3 text-emerald-950">{service.name}</h3>
-      <p className="text-emerald-950/50 text-sm mt-1">{service.subtitle}</p>
-
-      {service.priceOnRequest ? (
-        <p className="mt-3 text-sm font-medium text-emerald-950/60 italic">Pricing depends on project scope — let's talk.</p>
-      ) : (
-        <div className="mt-3 font-mono text-2xl font-semibold text-emerald-950">
-          Rs. {service.price.toLocaleString()} <span className="text-sm font-normal text-emerald-950/40 font-body">/ project</span>
-        </div>
-      )}
-
-      <ul className="text-sm text-emerald-950/70 mt-3 space-y-1.5">
-        {service.features.map((f: string, i: number) => (
-          <li key={i} className="flex gap-2"><FaCheckCircle className="text-emerald-600 mt-0.5 shrink-0" /> {f}</li>
+            <FaCheck className="text-[var(--accent)] mt-1 shrink-0 text-xs" />
+            <span>{f}</span>
+          </motion.li>
         ))}
-        {!service.priceOnRequest && (
-          <li className="flex gap-2"><FaExclamationCircle className="text-amber-500 mt-0.5 shrink-0" /> No refund policy</li>
-        )}
       </ul>
-      <p className="text-xs text-emerald-950/40 mt-2">{service.note}</p>
 
-      {service.priceOnRequest ? (
-        <a
-          href={`https://wa.me/923182082758?text=${discussMessage}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-5 w-full bg-emerald-950 hover:bg-emerald-900 text-white font-semibold py-2.5 rounded-xl transition flex items-center justify-center gap-2"
-        >
-          <FaWhatsapp /> Let's discuss
-        </a>
-      ) : (
-        <button
-          onClick={() => addItem({ id: service.id, name: service.name, price: service.price, half: service.price / 2, type: 'service' })}
-          className="mt-5 w-full bg-emerald-950 hover:bg-emerald-900 text-white font-semibold py-2.5 rounded-xl transition flex items-center justify-center gap-2"
-        >
-          <FaCartPlus /> Add to cart
-        </button>
-      )}
+      <p className="text-xs text-[var(--text-dim)] mt-5">{service.note}</p>
+
+      <motion.a
+        whileHover={{ scale: 1.02 }}
+        href={waLink(`Hi ${BUSINESS_NAME}, I'm interested in the ${service.name} service. Can we discuss the details?`)}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mt-6 w-full border border-[var(--line-strong)] text-[var(--text)] hover:bg-[var(--panel-soft)] font-semibold py-2.5 transition-colors flex items-center justify-center gap-2 text-sm square"
+      >
+        Get started
+      </motion.a>
     </motion.div>
   );
 }
 
-// ─── 5. CTA Band ─────────────────────────────────────────────────────────
-function CtaBand() {
-  const { goTo } = useCart();
+function Services() {
   return (
-    <section className="bg-emerald-950 py-14">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <h2 className="font-display text-2xl sm:text-3xl font-bold text-white">Ready to stop doing this by hand?</h2>
-        <p className="text-emerald-200/60 mt-2">Pick a course to learn it yourself, or hand it off — pay 50% now, rest on delivery.</p>
-        <button
-          onClick={() => goTo('checkout')}
-          className="mt-6 bg-amber-400 hover:bg-amber-300 text-emerald-950 font-semibold px-6 py-3 rounded-xl inline-flex items-center gap-2 transition"
-        >
-          Go to checkout <FaArrowRight />
-        </button>
+    <section id="services" className="py-20 border-t border-[var(--line)] bg-white">
+      <div className="max-w-7xl mx-auto px-5 sm:px-8">
+        <Reveal>
+          <h2 className="font-display text-3xl sm:text-[2.2rem] font-semibold text-[var(--text)] max-w-xl">
+            Three ways I can help your business move faster
+          </h2>
+          <p className="text-[var(--text-muted)] mt-3 max-w-lg">
+            Done-for-you automation, voice agents and websites — scoped to what your business actually needs.
+          </p>
+        </Reveal>
+        <div className="grid md:grid-cols-3 gap-6 mt-10 items-stretch">
+          {services.map((s, i) => (
+            <Reveal key={s.id} delay={i * 0.06} className="h-full">
+              <ServiceCard service={s} />
+            </Reveal>
+          ))}
+        </div>
       </div>
     </section>
   );
 }
 
-// ─── 6. Footer ───────────────────────────────────────────────────────────
+// ─── 4. COURSES ─────────────────────────────────────────────────────────────
+const courses = [
+  {
+    id: 'n8n-course',
+    name: 'AI Automation Mastery',
+    subtitle: 'Master n8n workflows from scratch',
+    price: COURSE_PRICE,
+    originalPrice: COURSE_ORIGINAL,
+    classes: '12 classes',
+    duration: '~2h 45m total',
+    romanUrdu: true,
+    outline: [
+      { title: 'Introduction, UI & Setup', points: ['What is n8n?', 'AI automation vs normal automation', 'Cloud vs self-hosted', 'n8n instance tour (UI walkthrough)', 'Basic workflow concept'] },
+      { title: 'Core Concepts', points: ['Nodes explained', 'What is a workflow?', 'Trigger vs action nodes', 'Simple automation: manual trigger + send email', 'Understanding data flow'] },
+      { title: 'Triggers, Webhooks & Cron Jobs', points: ['What is a webhook?', 'What is a cron job?', 'Form submission automations', 'Workflow trigger node', 'Real-world examples'] },
+      { title: 'APIs & Real Integrations', points: ['What is an API?', 'GET vs POST requests', 'MCP server & client', 'How mapping, set nodes & expressions work'] },
+      { title: 'Logic & Smart Automations', points: ['IF conditions', 'Switch nodes', 'Filters', 'AI agent node introduction', 'How AI agent nodes work'] },
+      { title: 'WhatsApp Restaurant Chatbot', points: ['Third-party WhatsApp tool setup, no Business API needed', 'Building the chatbot flow — customer messages, AI takes the order', 'AI agent node configuration for natural conversation', 'Parsing and validating the order (item, quantity, price)', 'Saving confirmed orders to Google Sheets in real time', 'Full end-to-end walkthrough'] },
+      { title: 'What is RAG?', points: ['What RAG (Retrieval-Augmented Generation) is', 'RAG with Pinecone', 'How to set up RAG in your workflow'] },
+      { title: 'Error Handling', points: ['How error handling works', 'Building production-ready error handling'] },
+      { title: 'Memory in AI Agents', points: ['Short-term vs long-term memory', 'Using Supabase Postgres as production-ready long-term memory', 'How memory state is maintained'] },
+      { title: 'Finding Clients (Part 1) & Delivery', points: ['2-3 proven methods to find clients', 'Writing an effective outreach message', 'How to deliver AI automation to a client'] },
+      { title: 'Lead Generation Automation', points: ['Automation that scrapes leads from Google Maps', 'AI writes a personalized email for each lead', 'Automatically sends the email to every lead'] },
+      { title: 'Finding Clients (Part 2)', points: ['Finding local clients', 'Finding international clients', '4-5 high-quality client-hunting methods', 'Reaching out via WhatsApp, DMs & Emails', 'Avoiding spam filters while cold emailing'] },
+    ],
+  },
+  {
+    id: 'voice-course',
+    name: 'AI Voice Agent Course',
+    subtitle: 'Build production-ready AI agents',
+    price: COURSE_PRICE,
+    originalPrice: COURSE_ORIGINAL,
+    classes: '7 classes',
+    duration: '~1h 45m total',
+    romanUrdu: true,
+    outline: [
+      { title: 'Introduction to AI Call Agents', points: ['What an AI call agent is and how it works', 'Popular platforms: VAPI, Retell AI', 'Inbound vs outbound agents', 'Real-world use cases', 'Setting up Retell AI and dashboard walkthrough'] },
+      { title: 'Designing the Call Flow & Script', points: ['Single prompt agent, full dashboard walkthrough', 'Writing a natural call script with AI', 'Handling greetings, objections, fallback responses', 'Setting agent goals', 'Testing script logic', 'How voicemail & IVR works'] },
+      { title: 'Voice & Configuration', points: ['Dynamic vs static variables', 'Choosing the right AI voice (ElevenLabs)', 'Tone, speed, language', 'Building a persona', 'Background sound & silence detection', 'Knowledge base in agent'] },
+      { title: 'Integrations — CRM, Calendar & Webhooks', points: ['Connecting to a CRM (GoHighLevel, HubSpot, etc.)', 'Booking via Cal.com or Google Calendar', 'Sending call data via webhooks', 'Tools like transfer call and more'] },
+      { title: 'Phone Number Setup', points: ['Connecting a number with Retell', 'Where to buy numbers', 'Phone number page UI'] },
+      { title: 'AI Receptionist Agent', points: ['Full receptionist agent, built in Roman Urdu'] },
+      { title: 'Finding Clients & Outreach', points: ['How to find clients for AI voice agents', 'How to deliver the agent to a client', 'Writing an effective outreach message'] },
+    ],
+  },
+];
+
+type Course = (typeof courses)[number];
+
+function CourseCard({ course, onViewOutline }: { course: Course; onViewOutline: () => void }) {
+  const discount = Math.round((1 - course.price / course.originalPrice) * 100);
+
+  return (
+    <motion.div 
+      whileHover={{ y: -4 }}
+      className="h-full flex flex-col border border-[var(--line-strong)] bg-white overflow-hidden transition-all duration-300 hover:shadow-md square"
+    >
+      <div className="h-1" style={{ background: 'var(--accent-gradient)' }} />
+      <div className="p-7 sm:p-8 flex flex-col flex-1">
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 square" style={{ background: 'var(--accent-soft)', color: 'var(--accent)' }}>
+            Recorded Course
+          </span>
+          <span className="text-xs text-[var(--text-dim)] flex items-center gap-1.5">
+            <FaClock /> {course.classes}
+          </span>
+        </div>
+
+        <h3 className="font-display text-2xl sm:text-[1.6rem] font-semibold mt-4 text-[var(--text)]">
+          {course.name}
+        </h3>
+        <p className="text-[var(--text-muted)] text-sm mt-1.5">{course.subtitle}</p>
+        <p className="text-[var(--text-dim)] text-xs mt-1">{course.duration}</p>
+
+        <div className="flex items-baseline gap-3 mt-5">
+          <span className="font-display text-3xl font-semibold text-[var(--text)]">
+            Rs. {course.price.toLocaleString()}
+          </span>
+          <span className="text-sm line-through text-[var(--text-dim)]">
+            Rs. {course.originalPrice.toLocaleString()}
+          </span>
+          <span className="text-xs font-semibold px-2 py-0.5 square" style={{ background: 'var(--accent-soft)', color: 'var(--accent)' }}>
+            Save {discount}%
+          </span>
+        </div>
+
+        <ul className="text-sm text-[var(--text-muted)] mt-4 space-y-1.5">
+          <li className="flex gap-2.5"><FaCheck className="text-[var(--accent)] mt-1 shrink-0 text-xs" /> Lifetime access, watch anytime</li>
+          <li className="flex gap-2.5"><FaCheck className="text-[var(--accent)] mt-1 shrink-0 text-xs" /> Access given immediately after payment</li>
+          {course.romanUrdu && (
+            <li className="flex gap-2.5"><FaMicrophoneAlt className="text-[var(--accent)] mt-1 shrink-0 text-xs" /> Includes a Roman Urdu project walkthrough</li>
+          )}
+        </ul>
+
+        <motion.button
+          whileHover={{ x: 4 }}
+          onClick={onViewOutline}
+          className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-[var(--text)] hover:text-[var(--accent)] transition-colors"
+        >
+          <FaListUl className="text-xs" /> View full course outline
+        </motion.button>
+
+        <div className="flex-1" />
+
+        <motion.a
+          whileHover={{ scale: 1.02 }}
+          href={waLink(`Hi ${BUSINESS_NAME}, I'd like to buy the "${course.name}" course (Rs. ${course.price.toLocaleString()}).`)}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-7 w-full font-semibold py-3 transition-transform duration-200 flex items-center justify-center gap-2 text-white square"
+          style={{ background: 'var(--accent-gradient)' }}
+        >
+          <FaWhatsapp /> Buy Course
+        </motion.a>
+      </div>
+    </motion.div>
+  );
+}
+
+// Outline Modal
+function OutlineModal({ course, onClose }: { course: Course | null; onClose: () => void }) {
+  useEffect(() => {
+    if (!course) return;
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
+    document.addEventListener('keydown', onKey);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = '';
+    };
+  }, [course, onClose]);
+
+  return (
+    <AnimatePresence>
+      {course && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-0 sm:p-6"
+        >
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 30 }}
+            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+            role="dialog"
+            aria-modal="true"
+            aria-label={`${course.name} course outline`}
+            className="relative w-full sm:max-w-xl max-h-[85vh] bg-white border border-[var(--line-strong)] overflow-hidden flex flex-col square"
+          >
+            <div className="flex items-start justify-between gap-4 p-6 border-b border-[var(--line)]">
+              <div>
+                <p className="text-xs text-[var(--text-dim)]">{course.classes} · full outline</p>
+                <h3 className="font-display text-xl font-semibold text-[var(--text)] mt-1">{course.name}</h3>
+              </div>
+              <button
+                onClick={onClose}
+                aria-label="Close outline"
+                className="shrink-0 w-9 h-9 border border-[var(--line-strong)] flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-[var(--panel-soft)] transition-colors square"
+              >
+                <FaTimes className="text-sm" />
+              </button>
+            </div>
+
+            <div className="overflow-y-auto p-6 space-y-5">
+              {course.outline.map((cls, idx) => (
+                <motion.div 
+                  key={idx} 
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: idx * 0.03 }}
+                  className="flex gap-3.5"
+                >
+                  <span className="font-display text-xs font-semibold shrink-0 w-7 h-7 flex items-center justify-center text-white mt-0.5 square" style={{ background: 'var(--accent-gradient)' }}>
+                    {String(idx + 1).padStart(2, '0')}
+                  </span>
+                  <div>
+                    <p className="font-semibold text-[var(--text)] text-sm">{cls.title}</p>
+                    <ul className="mt-1.5 space-y-1 text-sm text-[var(--text-muted)]">
+                      {cls.points.map((point, i) => (
+                        <li key={i}>{point}</li>
+                      ))}
+                    </ul>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+
+            <div className="p-6 border-t border-[var(--line)]">
+              <motion.a
+                whileHover={{ scale: 1.02 }}
+                href={waLink(`Hi ${BUSINESS_NAME}, I'd like to buy the "${course.name}" course (Rs. ${course.price.toLocaleString()}).`)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full font-semibold py-3 flex items-center justify-center gap-2 text-white square"
+                style={{ background: 'var(--accent-gradient)' }}
+              >
+                <FaWhatsapp /> Buy Course
+              </motion.a>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
+function Courses() {
+  const [activeOutline, setActiveOutline] = useState<Course | null>(null);
+
+  return (
+    <section id="courses" className="py-20 border-t border-[var(--line)] bg-[var(--bg)]">
+      <div className="max-w-7xl mx-auto px-5 sm:px-8">
+        <Reveal>
+          <h2 className="font-display text-3xl sm:text-[2.2rem] font-semibold text-[var(--text)] max-w-xl">
+            Two recorded courses, learn at your own pace
+          </h2>
+          <p className="text-[var(--text-muted)] mt-3 max-w-lg">
+            Fully recorded, lifetime access — watch whenever it suits you, revisit any class as often as you like.
+          </p>
+        </Reveal>
+        <div className="grid md:grid-cols-2 gap-8 mt-10 items-stretch">
+          {courses.map((c, i) => (
+            <Reveal key={c.id} delay={i * 0.06} className="h-full">
+              <CourseCard course={c} onViewOutline={() => setActiveOutline(c)} />
+            </Reveal>
+          ))}
+        </div>
+      </div>
+      <OutlineModal course={activeOutline} onClose={() => setActiveOutline(null)} />
+    </section>
+  );
+}
+
+// ─── 5. FEEDBACK ─── WITH YOUR REAL SCREENSHOTS ──────────────────────
+const testimonials = [
+  {
+    name: 'Shah (Automation Student)',
+    image: '/IMG_5523.PNG'
+  },
+  {
+    name: 'SM Elevate (AI Automation Student)',
+    image: '/IMG_6090.PNG'
+  },
+  {
+    name: 'Syeda (Voice Agent Student)',
+    image: '/IMG_5527.PNG'
+  },
+  {
+    name: 'AI Automation Course Student',
+    image: '/IMG_5528.PNG'
+  }
+];
+
+function Feedback() {
+  return (
+    <section id="feedback" className="py-20 border-t border-[var(--line)] bg-white">
+      <div className="max-w-7xl mx-auto px-5 sm:px-8">
+        <Reveal>
+          <h2 className="font-display text-3xl sm:text-[2.2rem] font-semibold text-[var(--text)] max-w-xl">
+            What students say about my courses
+          </h2>
+          <p className="text-[var(--text-muted)] mt-3 max-w-lg">
+            Real feedback from real students who took my courses and learned AI automation.
+          </p>
+        </Reveal>
+
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-10 items-stretch">
+          {testimonials.map((t, i) => (
+            <motion.div 
+              key={i} 
+              whileHover={{ y: -4 }}
+              className="border border-[var(--line-strong)] bg-white overflow-hidden transition-all duration-300 square shadow-sm hover:shadow-md"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img 
+                src={t.image} 
+                alt={`Feedback from ${t.name}`} 
+                className="w-full h-auto" 
+              />
+              <div className="p-4 border-t border-[var(--line)]">
+                <p className="text-sm font-medium text-[var(--text)]">{t.name}</p>
+                <p className="text-xs text-[var(--text-muted)]">Student Feedback</p>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ─── 6. POLICIES ─────────────────────────────────────────────────────────────
+function Policies() {
+  return (
+    <section id="policies" className="py-20 border-t border-[var(--line)]">
+      <div className="max-w-3xl mx-auto px-5 sm:px-8">
+        <Reveal>
+          <h2 className="font-display text-3xl font-semibold text-[var(--text)]">
+            Course purchase policy
+          </h2>
+          <p className="text-[var(--text-muted)] mt-3 leading-relaxed">
+            Both courses are recorded, digital products. Once you purchase, you're granted{' '}
+            <span className="font-semibold text-[var(--accent)]">lifetime access</span> —
+            watch and re-watch every class for as long as you like, with no expiry.
+          </p>
+
+          <ul className="mt-8 space-y-4 text-[var(--text-muted)] leading-relaxed">
+            <li className="flex gap-3">
+              <span className="w-1.5 h-1.5 mt-2 shrink-0" style={{ background: 'var(--accent)' }} />
+              Every course purchase is final. As a digital product, it cannot be returned or exchanged once access has been granted.
+            </li>
+            <li className="flex gap-3">
+              <span className="w-1.5 h-1.5 mt-2 shrink-0" style={{ background: 'var(--accent)' }} />
+              No refunds are issued after purchase, for any reason.
+            </li>
+            <li className="flex gap-3">
+              <span className="w-1.5 h-1.5 mt-2 shrink-0" style={{ background: 'var(--accent)' }} />
+              Please review the course description, class count and full outline carefully before buying.
+            </li>
+            <li className="flex gap-3">
+              <span className="w-1.5 h-1.5 mt-2 shrink-0" style={{ background: 'var(--accent)' }} />
+              For done-for-you services, project terms are agreed directly over WhatsApp before work begins.
+            </li>
+            <li className="flex gap-3">
+              <span className="w-1.5 h-1.5 mt-2 shrink-0" style={{ background: 'var(--accent)' }} />
+              Questions before buying? Message on WhatsApp first — happy to help you decide if a course is the right fit.
+            </li>
+          </ul>
+        </Reveal>
+      </div>
+    </section>
+  );
+}
+
+// ─── 7. CONTACT ─────────────────────────────────────────────────────────────
+function ContactBand() {
+  return (
+    <section id="contact" className="py-16 border-t border-[var(--line)] bg-[var(--panel-soft)]">
+      <div className="max-w-3xl mx-auto px-5 sm:px-8 text-center">
+        <Reveal>
+          <h2 className="font-display text-2xl sm:text-3xl font-semibold text-[var(--text)]">
+            Ready to automate something?
+          </h2>
+          <p className="text-[var(--text-muted)] mt-2">
+            Message me on WhatsApp — courses, automations or voice agents, I'll point you the right way.
+          </p>
+          <motion.a
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
+            href={waLink(`Hi ${BUSINESS_NAME}, I'd like to get in touch.`)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-6 inline-flex items-center gap-2 font-semibold px-6 py-3.5 text-white transition-transform duration-200 square"
+            style={{ background: 'var(--accent-gradient)' }}
+          >
+            <FaWhatsapp /> Message on WhatsApp
+          </motion.a>
+        </Reveal>
+      </div>
+    </section>
+  );
+}
+
+// ─── 8. FOOTER ───────────────────────────────────────────────────────────────
 function Footer() {
   return (
-    <footer className="bg-[#F7F6F2] border-t border-emerald-950/8 py-10 text-center text-emerald-950/40 text-sm">
-      <div className="max-w-7xl mx-auto px-4">
-        <p className="font-display font-semibold text-emerald-950/70">Ahmed<span className="text-emerald-600">.</span></p>
-        <p className="mt-2">© 2026 Ahmed Memon · AI Automation. All rights reserved.</p>
-        <p className="text-xs mt-1">No refund policy on courses &amp; services · lifetime access to recordings.</p>
+    <footer className="border-t border-[var(--line)] pt-12 pb-8 bg-white">
+      <div className="max-w-7xl mx-auto px-5 sm:px-8">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-10">
+          <div>
+            <p className="font-display text-xl font-semibold text-[var(--text)]">{BUSINESS_NAME}</p>
+            <p className="text-sm text-[var(--text-muted)] mt-3 leading-relaxed max-w-xs">
+              AI automation, AI calling agents and hands-on courses — built and taught directly.
+            </p>
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-[var(--text)] mb-3">Navigate</p>
+            <ul className="space-y-2 text-sm text-[var(--text-muted)]">
+              {NAV_LINKS.map((l) => <li key={l.href}>{l.label}</li>)}
+            </ul>
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-[var(--text)] mb-3">Services</p>
+            <ul className="space-y-2 text-sm text-[var(--text-muted)]">
+              {services.map((s) => <li key={s.id}>{s.name}</li>)}
+            </ul>
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-[var(--text)] mb-3">Get in touch</p>
+            <a
+              href={waLink(`Hi ${BUSINESS_NAME}, I'd like to get in touch.`)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--text)] hover:text-[var(--accent)] transition-colors"
+            >
+              <FaWhatsapp /> WhatsApp
+            </a>
+          </div>
+        </div>
+        <div className="border-t border-[var(--line)] mt-10 pt-6 flex flex-col sm:flex-row justify-between gap-2 text-xs text-[var(--text-dim)]">
+          <p>© {new Date().getFullYear()} {BUSINESS_NAME}. All rights reserved.</p>
+          <p>Recorded digital courses — lifetime access, non-refundable once purchased.</p>
+        </div>
       </div>
     </footer>
   );
 }
 
-// ─── HOME "PAGE" ─────────────────────────────────────────────────────────
-function HomePage({ courses, services }: { courses: any[]; services: any[] }) {
+// ─── 9. FLOATING WHATSAPP ───────────────────────────────────────────────────
+function FloatingWhatsApp() {
   return (
-    <>
-      <Hero />
-
-      <section id="courses" className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }}>
-            <div className="flex items-center justify-between mb-10">
-              <div>
-                <p className="font-mono text-xs text-emerald-700/60 mb-1">01 · LEARN IT YOURSELF</p>
-                <h2 className="font-display text-3xl font-bold text-emerald-950">Master Classes</h2>
-              </div>
-              <span className="text-sm text-emerald-950/40 hidden sm:block">lifetime access · no refund</span>
-            </div>
-            <div className="grid md:grid-cols-2 gap-8">
-              {courses.map((c) => <CourseCard key={c.id} course={c} />)}
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      <section id="services" className="py-20 bg-[#F7F6F2]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }}>
-            <p className="font-mono text-xs text-emerald-700/60 mb-1">02 · HAVE IT BUILT FOR YOU</p>
-            <h2 className="font-display text-3xl font-bold text-emerald-950 mb-10">Done-for-you services</h2>
-            <div className="grid md:grid-cols-2 gap-8">
-              {services.map((s) => <ServiceCard key={s.id} service={s} />)}
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      <CtaBand />
-      <Footer />
-    </>
+    <motion.a
+      href={waLink(`Hi ${BUSINESS_NAME}, I'd like to get in touch.`)}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label="Chat on WhatsApp"
+      initial={{ scale: 0, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      transition={{ delay: 1, type: 'spring', stiffness: 260, damping: 20 }}
+      whileHover={{ scale: 1.08, rotate: -5 }}
+      whileTap={{ scale: 0.95 }}
+      className="fixed z-40 bottom-5 right-5 sm:bottom-6 sm:right-6 w-14 h-14 bg-[#25D366] text-white flex items-center justify-center text-2xl shadow-lg square"
+    >
+      <FaWhatsapp />
+    </motion.a>
   );
 }
 
-// ─── CHECKOUT "PAGE" — fully separate from the landing page ─────────────
-function CheckoutPage() {
-  const { cart, removeItem, clearCart, totalAdvance, totalDue, totalPayNow, itemCount, goTo } = useCart();
-
-  const copyBank = () => {
-    const text = 'Sadapay · SHAZIA · 03133937654';
-    navigator.clipboard?.writeText(text).then(() => alert('Bank details copied!')).catch(() => prompt('Copy manually:', text));
-  };
-
-  const whatsappMessage = encodeURIComponent(
-    cart.length
-      ? `Hi Ahmed, I'd like to order:\n${cart.map((i) => `- ${i.name} (Rs. ${(i.half || i.price).toLocaleString()})`).join('\n')}\nTotal now: Rs. ${totalPayNow.toLocaleString()}`
-      : `Hi Ahmed, I'd like to place an order.`
-  );
-
-  return (
-    <section className="min-h-screen bg-[#F7F6F2] pt-24 pb-20">
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
-        <button onClick={() => goTo('home')} className="text-emerald-950/60 hover:text-emerald-950 text-sm font-medium inline-flex items-center gap-2 mb-6">
-          <FaArrowLeft /> Back to courses &amp; services
-        </button>
-
-        <p className="font-mono text-xs text-emerald-700/60 mb-1">CHECKOUT</p>
-        <h1 className="font-display text-3xl font-bold text-emerald-950 mb-6">Your order</h1>
-
-        {itemCount === 0 ? (
-          <div className="bg-white rounded-2xl border border-emerald-950/8 text-center py-16">
-            <p className="text-emerald-950/40">Your cart is empty.</p>
-            <button onClick={() => goTo('home')} className="mt-4 text-emerald-700 font-medium hover:underline">
-              Browse courses &amp; services
-            </button>
-          </div>
-        ) : (
-          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }} className="space-y-5">
-
-            {/* Order items */}
-            <div className="bg-white rounded-2xl border border-emerald-950/8 divide-y divide-emerald-950/6 overflow-hidden">
-              <AnimatePresence>
-                {cart.map((item) => (
-                  <motion.div
-                    key={item.id}
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.2 }}
-                    className="flex justify-between items-center p-5"
-                  >
-                    <div>
-                      <p className="font-semibold text-emerald-950">{item.name}</p>
-                      <div className="flex items-center gap-2 mt-1.5">
-                        <NodeChip>{item.type === 'course' ? 'full payment' : '50% advance'}</NodeChip>
-                        <span className="text-xs text-emerald-950/40 font-mono">list price Rs. {item.price.toLocaleString()}</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4 shrink-0">
-                      <div className="text-right">
-                        <p className="font-mono font-semibold text-emerald-950">Rs. {(item.type === 'service' ? item.half : item.price).toLocaleString()}</p>
-                        {item.type === 'service' && (
-                          <p className="text-[0.7rem] text-emerald-950/35 font-mono">+Rs. {(item.price - item.half).toLocaleString()} later</p>
-                        )}
-                      </div>
-                      <button onClick={() => removeItem(item.id)} aria-label="Remove item" className="text-red-400 hover:text-red-600 transition">
-                        <FaTrashAlt />
-                      </button>
-                    </div>
-                  </motion.div>
-                ))}
-              </AnimatePresence>
-            </div>
-
-            {/* Totals */}
-            <div className="bg-emerald-950 rounded-2xl p-6 text-white">
-              <div className="flex justify-between items-baseline">
-                <span className="font-display font-semibold">Pay now</span>
-                <span className="font-mono text-3xl font-bold">Rs. {totalPayNow.toLocaleString()}</span>
-              </div>
-              {totalDue > 0 && (
-                <div className="flex justify-between text-sm text-emerald-200/60 mt-2 pt-2 border-t border-white/10">
-                  <span>Due on delivery (services)</span>
-                  <span className="font-mono">Rs. {totalDue.toLocaleString()}</span>
-                </div>
-              )}
-            </div>
-
-            {/* Bank details */}
-            <div className="bg-white rounded-2xl p-6 border border-emerald-950/8">
-              <p className="font-semibold text-sm text-emerald-950">Bank details</p>
-              <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-sm mt-3">
-                <span className="text-emerald-950/45">Bank</span><span className="font-medium font-mono text-emerald-950">Sadapay</span>
-                <span className="text-emerald-950/45">Title</span><span className="font-medium font-mono text-emerald-950">SHAZIA</span>
-                <span className="text-emerald-950/45">Account</span><span className="font-medium font-mono text-emerald-950">03133937654</span>
-              </div>
-              <button onClick={copyBank} className="text-emerald-700 text-sm font-medium mt-3 inline-flex items-center gap-1.5 hover:underline">
-                <FaCopy /> Copy details
-              </button>
-            </div>
-
-            {/* How it works */}
-            <div className="bg-white rounded-2xl p-6 border border-emerald-950/8">
-              <p className="font-semibold text-emerald-950 mb-3 text-sm">How ordering works</p>
-              <ol className="space-y-2 text-sm text-emerald-950/70">
-                {[
-                  `Transfer Rs. ${totalPayNow.toLocaleString()} to the SadaPay account above`,
-                  'Tap "Send order on WhatsApp" below',
-                  'Attach your payment screenshot',
-                  'Work starts right after confirmation',
-                  ...(totalDue > 0 ? ["Pay what's left once your service is delivered"] : []),
-                ].map((step, i) => (
-                  <li key={i} className="flex gap-3">
-                    <span className="font-mono text-xs shrink-0 w-5 h-5 rounded-full bg-emerald-950 text-emerald-300 flex items-center justify-center mt-0.5">{i + 1}</span>
-                    {step}
-                  </li>
-                ))}
-              </ol>
-              <p className="text-xs text-emerald-950/35 mt-3">Platform accounts (n8n, hosting, domains) are provided by the client.</p>
-            </div>
-
-            {/* Actions */}
-            <div className="flex flex-wrap gap-3">
-              <a
-                href={`https://wa.me/923182082758?text=${whatsappMessage}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex-1 bg-emerald-950 text-white px-6 py-3.5 rounded-xl font-semibold inline-flex items-center justify-center gap-2 hover:bg-emerald-900 transition"
-              >
-                <FaWhatsapp /> Send order on WhatsApp
-              </a>
-              <button onClick={clearCart} className="border border-emerald-950/15 px-6 py-3.5 rounded-xl font-medium text-emerald-950/60 hover:bg-emerald-950/5 transition">
-                Clear cart
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </div>
-    </section>
-  );
-}
-
-// ─── ROOT SWITCH ─────────────────────────────────────────────────────────
-function AppShell({ courses, services }: { courses: any[]; services: any[] }) {
-  const { view } = useCart();
+// ─── MAIN ────────────────────────────────────────────────────────────────────
+export default function Home() {
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: FONT_IMPORT }} />
       <Navbar />
-      <main>
-        <AnimatePresence mode="wait">
-          {view === 'home' ? (
-            <motion.div key="home" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
-              <HomePage courses={courses} services={services} />
-            </motion.div>
-          ) : (
-            <motion.div key="checkout" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
-              <CheckoutPage />
-            </motion.div>
-          )}
-        </AnimatePresence>
+      <main className="bg-[var(--bg)]">
+        <Hero />
+        <Services />
+        <Courses />
+        <Feedback />
+        <Policies />
+        <ContactBand />
       </main>
+      <Footer />
+      <FloatingWhatsApp />
     </>
-  );
-}
-
-// ─── MAIN PAGE ──────────────────────────────────────────────────────────
-export default function Home() {
-  const courses = [
-    {
-      id: 'n8n-course',
-      name: 'AI Automation Mastery',
-      subtitle: 'Master n8n workflows from scratch',
-      price: COURSE_PRICE,
-      originalPrice: 12000,
-      discount: Math.round((1 - COURSE_PRICE / 12000) * 100),
-      badge: 'Popular',
-      classes: '12 classes',
-      duration: '~2h 45m total',
-      romanUrdu: true,
-      outline: [
-        { title: 'Class 1 — Introduction, UI & Setup', points: ['What is n8n?', 'AI automation vs normal automation', 'Cloud vs self-hosted', 'n8n instance tour (UI walkthrough)', 'Basic workflow concept'] },
-        { title: 'Class 2 — Core Concepts', points: ['Nodes explained', 'What is a workflow?', 'Trigger vs action nodes', 'Simple automation: manual trigger + send email', 'Understanding data flow'] },
-        { title: 'Class 3 — Triggers, Webhooks & Cron Jobs', points: ['What is a webhook?', 'What is a cron job?', 'Form submission automations', 'Workflow trigger node', 'Real-world examples'] },
-        { title: 'Class 4 — APIs & Real Integrations', points: ['What is an API?', 'GET vs POST requests', 'MCP server & client', 'How mapping, set nodes & expressions work'] },
-        { title: 'Class 5 — Logic & Smart Automations', points: ['IF conditions', 'Switch nodes', 'Filters', 'AI agent node introduction', 'How AI agent nodes work'] },
-        { title: 'Class 6 — WhatsApp Restaurant Chatbot', points: ['Third-party WhatsApp tool setup, no Business API needed', 'Building the chatbot flow — customer messages, AI takes the order', 'AI agent node configuration for natural conversation', 'Parsing and validating the order (item, quantity, price)', 'Saving confirmed orders to Google Sheets in real time', 'Full end-to-end walkthrough'] },
-        { title: 'Class 7 — What is RAG?', points: ['What RAG (Retrieval-Augmented Generation) is', 'RAG with Pinecone', 'How to set up RAG in your workflow'] },
-        { title: 'Class 8 — Error Handling', points: ['How error handling works', 'Building production-ready error handling'] },
-        { title: 'Class 9 — Memory in AI Agents', points: ['Short-term vs long-term memory', 'Using Supabase Postgres as production-ready long-term memory', 'How memory state is maintained'] },
-        { title: 'Class 10 — Finding Clients (Part 1) & Delivery', points: ['2-3 proven methods to find clients', 'Writing an effective outreach message', 'How to deliver AI automation to a client'] },
-        { title: 'Class 11 — Lead Generation Automation', points: ['Automation that scrapes leads from Google Maps', 'AI writes a personalized email for each lead', 'Automatically sends the email to every lead'] },
-{ title: 'Class 12 — Finding Clients (Part 2)', points: ['Finding local clients', 'Finding international clients', '4-5 high-quality client-hunting methods', 'Reaching out via WhatsApp, DMs & Emails', 'Avoiding spam filters while cold emailing'] },      ],
-    },
-    {
-      id: 'voice-course',
-      name: 'AI Voice Agent Course',
-      subtitle: 'Build production-ready AI agents',
-      price: COURSE_PRICE,
-      originalPrice: 12000,
-      discount: Math.round((1 - COURSE_PRICE / 12000) * 100),
-      badge: 'New',
-      classes: '7 classes',
-      duration: '~1h 45m total',
-      romanUrdu: true,
-      outline: [
-        { title: 'Class 1 — Introduction to AI Call Agents', points: ['What an AI call agent is and how it works', 'Popular platforms: VAPI, Retell AI', 'Inbound vs outbound agents', 'Real-world use cases', 'Setting up Retell AI and dashboard walkthrough'] },
-        { title: 'Class 2 — Designing the Call Flow & Script', points: ['Single prompt agent, full dashboard walkthrough', 'Writing a natural call script with AI', 'Handling greetings, objections, fallback responses', 'Setting agent goals', 'Testing script logic', 'How voicemail & IVR works'] },
-        { title: 'Class 3 — Voice & Configuration', points: ['Dynamic vs static variables', 'Choosing the right AI voice (ElevenLabs)', 'Tone, speed, language', 'Building a persona', 'Background sound & silence detection', 'Knowledge base in agent'] },
-        { title: 'Class 4 — Integrations — CRM, Calendar & Webhooks', points: ['Connecting to a CRM (GoHighLevel, HubSpot, etc.)', 'Booking via Cal.com or Google Calendar', 'Sending call data via webhooks', 'Tools like transfer call and more'] },
-        { title: 'Class 5 — Phone Number Setup', points: ['Connecting a number with Retell', 'Where to buy numbers', 'Phone number page UI'] },
-        { title: 'Class 6 — AI Receptionist Agent', points: ['Full receptionist agent, built in Roman Urdu'] },
-        { title: 'Class 7 — Finding Clients & Outreach', points: ['How to find clients for AI voice agents', 'How to deliver the agent to a client', 'Writing an effective outreach message'] },
-      ],
-    },
-  ];
-
-  const services = [
-    {
-      id: 'ai-auto-service',
-      name: 'AI Automation',
-      subtitle: 'Any type of AI automation',
-      priceOnRequest: true,
-      icon: <FaRobot />,
-      features: ['Custom workflow design & build', 'API integrations & webhooks'],
-      note: 'Client provides the n8n platform account (if applicable).',
-    },
-    {
-      id: 'website-service',
-      name: 'Complete Website',
-      subtitle: 'Professional business website',
-      priceOnRequest: true,
-      icon: <FaGlobe />,
-      features: ['Responsive modern design', 'Up to 8 pages', 'SEO Friendly', 'Build On Modern Frameworks'],
-      note: "Domain, hosting & third-party costs are the client's responsibility.",
-    },
-  ];
-
-  return (
-    <CartProvider>
-      <AppShell courses={courses} services={services} />
-    </CartProvider>
   );
 }
