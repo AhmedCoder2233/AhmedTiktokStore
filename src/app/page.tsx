@@ -22,6 +22,7 @@ import {
  * 
  * Fixed: Navbar overlap issue, font contrast, background blur
  * Feedback: Real student screenshots added
+ * Fixed: Footer navigation links are now clickable and working
  * ─────────────────────────────────────────────────────────────────────────
  */
 
@@ -195,7 +196,7 @@ function Navbar() {
                     {l.label}
                   </button>
                 ))}
-                
+                <a
                   href={waLink(`Hi ${BUSINESS_NAME}, I'd like to know more about your services.`)}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -778,15 +779,68 @@ function ContactBand() {
   );
 }
 
-// ─── 8. FOOTER ─── SIMPLE, NO LINKS ─────────────────────────────────────────
+// ─── 8. FOOTER ─── FIXED: LINKS ARE NOW CLICKABLE ────────────────────
 function Footer() {
+  const go = (href: string) => {
+    document.querySelector(href)?.scrollIntoView({ behavior: 'smooth' });
+  };
+
   return (
-    <footer className="border-t border-[var(--line)] py-10 bg-white">
-      <div className="max-w-7xl mx-auto px-5 sm:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
-        <p className="font-display text-lg font-semibold text-[var(--text)]">{BUSINESS_NAME}</p>
-        <p className="text-xs text-[var(--text-dim)]">
-          © {new Date().getFullYear()} {BUSINESS_NAME}. All rights reserved.
-        </p>
+    <footer className="border-t border-[var(--line)] pt-12 pb-8 bg-white">
+      <div className="max-w-7xl mx-auto px-5 sm:px-8">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-10">
+          <div>
+            <p className="font-display text-xl font-semibold text-[var(--text)]">{BUSINESS_NAME}</p>
+            <p className="text-sm text-[var(--text-muted)] mt-3 leading-relaxed max-w-xs">
+              AI automation, AI calling agents and hands-on courses — built and taught directly.
+            </p>
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-[var(--text)] mb-3">Navigate</p>
+            <ul className="space-y-2 text-sm text-[var(--text-muted)]">
+              {NAV_LINKS.map((l) => (
+                <li key={l.href}>
+                  <button
+                    onClick={() => go(l.href)}
+                    className="hover:text-[var(--text)] transition-colors hover:underline underline-offset-2"
+                  >
+                    {l.label}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-[var(--text)] mb-3">Services</p>
+            <ul className="space-y-2 text-sm text-[var(--text-muted)]">
+              {services.map((s) => (
+                <li key={s.id}>
+                  <button
+                    onClick={() => go('#services')}
+                    className="hover:text-[var(--text)] transition-colors hover:underline underline-offset-2"
+                  >
+                    {s.name}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-[var(--text)] mb-3">Get in touch</p>
+            <a
+              href={waLink(`Hi ${BUSINESS_NAME}, I'd like to get in touch.`)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--text)] hover:text-[var(--accent)] transition-colors"
+            >
+              <FaWhatsapp /> WhatsApp
+            </a>
+          </div>
+        </div>
+        <div className="border-t border-[var(--line)] mt-10 pt-6 flex flex-col sm:flex-row justify-between gap-2 text-xs text-[var(--text-dim)]">
+          <p>© {new Date().getFullYear()} {BUSINESS_NAME}. All rights reserved.</p>
+          <p>Recorded digital courses — lifetime access, non-refundable once purchased.</p>
+        </div>
       </div>
     </footer>
   );
