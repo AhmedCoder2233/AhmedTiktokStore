@@ -75,6 +75,11 @@ function waLink(message: string) {
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
 }
 
+// ─── Shared scroll helper ───
+function scrollToSection(href: string) {
+  document.querySelector(href)?.scrollIntoView({ behavior: 'smooth' });
+}
+
 // ─── Scroll Reveal ───
 function Reveal({ children, className = '', delay = 0 }: { children: ReactNode; className?: string; delay?: number }) {
   const ref = useRef(null);
@@ -115,7 +120,7 @@ function Navbar() {
 
   const go = (href: string) => {
     setOpen(false);
-    document.querySelector(href)?.scrollIntoView({ behavior: 'smooth' });
+    scrollToSection(href);
   };
 
   return (
@@ -195,7 +200,7 @@ function Navbar() {
                     {l.label}
                   </button>
                 ))}
-                <a
+                
                   href={waLink(`Hi ${BUSINESS_NAME}, I'd like to know more about your services.`)}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -274,7 +279,7 @@ function Hero() {
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              onClick={() => document.querySelector('#courses')?.scrollIntoView({ behavior: 'smooth' })}
+              onClick={() => scrollToSection('#courses')}
               className="inline-flex items-center gap-2 border border-white/30 px-8 py-3.5 font-semibold text-white hover:bg-white/10 transition-colors square"
             >
               Explore Courses
@@ -793,7 +798,16 @@ function Footer() {
           <div>
             <p className="text-sm font-semibold text-[var(--text)] mb-3">Navigate</p>
             <ul className="space-y-2 text-sm text-[var(--text-muted)]">
-              {NAV_LINKS.map((l) => <li key={l.href}>{l.label}</li>)}
+              {NAV_LINKS.map((l) => (
+                <li key={l.href}>
+                  <button
+                    onClick={() => scrollToSection(l.href)}
+                    className="hover:text-[var(--accent)] transition-colors text-left"
+                  >
+                    {l.label}
+                  </button>
+                </li>
+              ))}
             </ul>
           </div>
           <div>
@@ -804,7 +818,7 @@ function Footer() {
           </div>
           <div>
             <p className="text-sm font-semibold text-[var(--text)] mb-3">Get in touch</p>
-            <a
+            
               href={waLink(`Hi ${BUSINESS_NAME}, I'd like to get in touch.`)}
               target="_blank"
               rel="noopener noreferrer"
