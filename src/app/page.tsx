@@ -75,11 +75,6 @@ function waLink(message: string) {
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
 }
 
-// ─── Shared scroll helper ───
-function scrollToSection(href: string) {
-  document.querySelector(href)?.scrollIntoView({ behavior: 'smooth' });
-}
-
 // ─── Scroll Reveal ───
 function Reveal({ children, className = '', delay = 0 }: { children: ReactNode; className?: string; delay?: number }) {
   const ref = useRef(null);
@@ -120,7 +115,7 @@ function Navbar() {
 
   const go = (href: string) => {
     setOpen(false);
-    scrollToSection(href);
+    document.querySelector(href)?.scrollIntoView({ behavior: 'smooth' });
   };
 
   return (
@@ -279,7 +274,7 @@ function Hero() {
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              onClick={() => scrollToSection('#courses')}
+              onClick={() => document.querySelector('#courses')?.scrollIntoView({ behavior: 'smooth' })}
               className="inline-flex items-center gap-2 border border-white/30 px-8 py-3.5 font-semibold text-white hover:bg-white/10 transition-colors square"
             >
               Explore Courses
@@ -801,7 +796,7 @@ function Footer() {
               {NAV_LINKS.map((l) => (
                 <li key={l.href}>
                   <button
-                    onClick={() => scrollToSection(l.href)}
+                    onClick={() => document.querySelector(l.href)?.scrollIntoView({ behavior: 'smooth' })}
                     className="hover:text-[var(--accent)] transition-colors text-left"
                   >
                     {l.label}
@@ -813,7 +808,16 @@ function Footer() {
           <div>
             <p className="text-sm font-semibold text-[var(--text)] mb-3">Services</p>
             <ul className="space-y-2 text-sm text-[var(--text-muted)]">
-              {services.map((s) => <li key={s.id}>{s.name}</li>)}
+              {services.map((s) => (
+                <li key={s.id}>
+                  <button
+                    onClick={() => document.querySelector('#services')?.scrollIntoView({ behavior: 'smooth' })}
+                    className="hover:text-[var(--accent)] transition-colors text-left"
+                  >
+                    {s.name}
+                  </button>
+                </li>
+              ))}
             </ul>
           </div>
           <div>
