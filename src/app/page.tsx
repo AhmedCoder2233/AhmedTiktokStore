@@ -22,7 +22,7 @@ import {
  * 
  * Fixed: Navbar overlap issue, font contrast, background blur
  * Feedback: Real student screenshots added
- * Fixed: Footer navigation links are now clickable and working
+ * Fixed: Footer - Services section removed, only Navigation remains
  * ─────────────────────────────────────────────────────────────────────────
  */
 
@@ -779,7 +779,7 @@ function ContactBand() {
   );
 }
 
-// ─── 8. FOOTER ─── FIXED: LINKS ARE NOW CLICKABLE ────────────────────
+// ─── 8. FOOTER ─── FIXED: Services REMOVED, only Navigation remains ──
 function Footer() {
   const go = (href: string) => {
     document.querySelector(href)?.scrollIntoView({ behavior: 'smooth' });
@@ -788,7 +788,7 @@ function Footer() {
   return (
     <footer className="border-t border-[var(--line)] pt-12 pb-8 bg-white">
       <div className="max-w-7xl mx-auto px-5 sm:px-8">
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-10">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-10">
           <div>
             <p className="font-display text-xl font-semibold text-[var(--text)]">{BUSINESS_NAME}</p>
             <p className="text-sm text-[var(--text-muted)] mt-3 leading-relaxed max-w-xs">
@@ -805,21 +805,6 @@ function Footer() {
                     className="hover:text-[var(--text)] transition-colors hover:underline underline-offset-2"
                   >
                     {l.label}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div>
-            <p className="text-sm font-semibold text-[var(--text)] mb-3">Services</p>
-            <ul className="space-y-2 text-sm text-[var(--text-muted)]">
-              {services.map((s) => (
-                <li key={s.id}>
-                  <button
-                    onClick={() => go('#services')}
-                    className="hover:text-[var(--text)] transition-colors hover:underline underline-offset-2"
-                  >
-                    {s.name}
                   </button>
                 </li>
               ))}
