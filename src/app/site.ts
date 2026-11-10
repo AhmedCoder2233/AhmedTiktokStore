@@ -1,4 +1,4 @@
-export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://ahmedmemon.com').replace(/\/$/, '');
+export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://ahmedmemon.pro').replace(/\/$/, '');
 export const BUSINESS_NAME = 'Ahmed Memon';
 export const WHATSAPP_NUMBER = '923182082758';
 
