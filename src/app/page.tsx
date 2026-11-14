@@ -47,6 +47,7 @@ const policies = [
   'Every course purchase is final. As a digital product, it cannot be returned or exchanged once access has been granted.',
   'No refunds are issued after purchase, for any reason.',
   'Please review the course description, class count and full outline carefully before buying.',
+  'The courses teach client hunting, outreach and delivery, but getting clients is not guaranteed. Results depend on your own effort, consistency and luck.',
   'For done-for-you services, project terms are agreed directly over WhatsApp before work begins.',
   'Questions before buying? Message on WhatsApp first. I am happy to help you decide if a course is the right fit.',
 ];
